@@ -1,0 +1,157 @@
+/* ==========================================================================
+   Global design tokens, resets, and app shell layout
+   Uniform Compliance Monitoring System — do not duplicate these values
+   in page-specific stylesheets. Add new tokens here if you need one.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* --- Color: core --- */
+  --color-navy: #1B2430;
+  --color-navy-light: #29354A;
+  --color-navy-100: #3A4759;
+
+  --color-bg: #F7F8FA;
+  --color-surface: #FFFFFF;
+  --color-border: #E2E5EA;
+
+  --color-text: #1B2430;
+  --color-text-muted: #6B7280;
+  --color-text-inverse: #F7F8FA;
+
+  /* --- Color: status (compliance signal system, used across all pages) --- */
+  --color-success: #3FA773;      /* Compliant */
+  --color-success-bg: #E7F5EE;
+  --color-warning: #E8A33D;      /* Minor / pending review */
+  --color-warning-bg: #FBF0DE;
+  --color-danger: #D65A5A;       /* Violation */
+  --color-danger-bg: #FBEAEA;
+  --color-info: #4C6FFF;
+  --color-info-bg: #EAEDFF;
+
+  /* --- Typography --- */
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+
+  /* --- Spacing scale --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --- Layout --- */
+  --sidebar-width: 240px;
+  --header-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(27, 36, 48, 0.06);
+  --shadow-md: 0 4px 16px rgba(27, 36, 48, 0.08);
+
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+
+/* --- Reset --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0 0 var(--space-3);
+  line-height: 1.2;
+}
+
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+
+p { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul { list-style: none; margin: 0; padding: 0; }
+
+button, input, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+img { max-width: 100%; display: block; }
+
+/* Visible keyboard focus everywhere — do not remove */
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+/* --- App shell layout ---
+   Every page/*.html should use this markup skeleton:
+   <div class="app-shell">
+     <div id="sidebar"></div>          (filled by js/components/sidebar.js)
+     <div class="app-main">
+       <div id="header"></div>         (filled by js/components/header.js)
+       <main class="app-content"> ... page content ... </main>
+     </div>
+   </div>
+*/
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* prevents flex children from overflowing on narrow content */
+}
+
+.app-content {
+  flex: 1;
+  padding: var(--space-6);
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    padding: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
