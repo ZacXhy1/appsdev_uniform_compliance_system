@@ -14,9 +14,53 @@
     <div class="app-main">
       <div id="header"></div>
       <main class="app-content">
-        <div class="placeholder-block">
-          Live Monitoring — to be built in Phase 3 (owner: Zachary).
-          See docs/PHASES.md for the deliverable.
+        <div class="monitoring-layout">
+
+          <section class="card monitoring-feed-card">
+            <div class="monitoring-feed">
+              <div class="monitoring-feed-placeholder">
+                <span class="monitoring-feed-icon">&#128247;</span>
+                <span>Main Gate Camera Feed (simulated — no real video)</span>
+              </div>
+              <div class="monitoring-scanline" aria-hidden="true"></div>
+            </div>
+            <div class="monitoring-controls">
+              <div class="monitoring-status" id="monitoring-status">
+                <span class="monitoring-status-dot" id="monitoring-status-dot"></span>
+                <span id="monitoring-status-text">Idle</span>
+              </div>
+              <button type="button" class="btn btn-primary" id="monitoring-toggle">
+                Start Monitoring
+              </button>
+            </div>
+          </section>
+
+          <section class="card monitoring-result-card">
+            <h2>Latest Detection</h2>
+            <div id="monitoring-result-content">
+              <div class="placeholder-block">
+                No detections yet. Click "Start Monitoring" to simulate the
+                camera picking up students at the Main Gate.
+              </div>
+            </div>
+          </section>
+
+          <section class="card monitoring-recent-card">
+            <h2>Recent Detections</h2>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Detected</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody id="monitoring-recent-body"></tbody>
+            </table>
+          </section>
+
         </div>
       </main>
     </div>
