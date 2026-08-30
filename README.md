@@ -81,6 +81,9 @@ records rather than duplicating data per page.
 
 ## Rules
 
-- Frontend-only. No backend, database, real auth, CCTV, or real AI.
+- Frontend-only. No backend, database, real auth, or real AI. Live Monitoring
+  can display a real local webcam feed (via the browser's camera API) purely
+  for visual realism — the detection results shown are still fully simulated,
+  not derived from the video.
 - Do not commit `node_modules`.
 - Pull before starting work; avoid two people editing the same shared file at once.
