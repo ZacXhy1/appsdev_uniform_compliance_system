@@ -5,18 +5,54 @@
 
 .monitoring-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 2fr;
+  align-items: start; /* prevent short cards from stretching to match a taller sibling */
   gap: var(--space-5);
 }
 
-.monitoring-feed-card {
+.monitoring-feed-card,
+.monitoring-today-card {
   grid-column: 1 / -1;
+}
+
+/* --- Today's stats row --- */
+.monitoring-today-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.monitoring-today-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 120px;
+}
+
+.monitoring-today-value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.monitoring-today-value--compliant {
+  color: var(--color-success);
+}
+
+.monitoring-today-value--violation {
+  color: var(--color-danger);
+}
+
+.monitoring-today-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 /* --- Simulated camera feed --- */
 .monitoring-feed {
   position: relative;
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 2.5 / 1;
   border-radius: var(--radius-md);
   background: linear-gradient(160deg, var(--color-navy) 0%, var(--color-navy-100) 100%);
   overflow: hidden;
@@ -35,6 +71,79 @@
   font-size: var(--text-sm);
   text-align: center;
   padding: var(--space-4);
+}
+
+.monitoring-feed-placeholder[hidden] {
+  display: none;
+}
+
+.monitoring-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Mirror the feed — feels natural for a front-facing camera, and most
+     "am I on camera" UIs (video calls, photo booths) do this by default. */
+  transform: scaleX(-1);
+}
+
+/* --- CCTV-style corner overlays --- */
+.monitoring-feed-topleft,
+.monitoring-feed-topright {
+  position: absolute;
+  top: var(--space-3);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(27, 36, 48, 0.55);
+  backdrop-filter: blur(2px);
+  color: var(--color-text-inverse);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+}
+
+.monitoring-feed-topleft {
+  left: var(--space-3);
+}
+
+.monitoring-feed-topright {
+  right: var(--space-3);
+  font-weight: 400;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.monitoring-feed-camera-label {
+  padding-left: var(--space-2);
+  border-left: 1px solid rgba(247, 248, 250, 0.3);
+  font-weight: 600;
+}
+
+.monitoring-feed-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger); /* idle = red */
+  flex-shrink: 0;
+}
+
+.monitoring-feed-dot.is-live {
+  background: var(--color-success); /* live = green */
+  position: relative;
+}
+
+.monitoring-feed-dot.is-live::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-success);
+  animation: pulse-ring 2.2s ease-out infinite;
 }
 
 .monitoring-feed-icon {
@@ -124,5 +233,9 @@
 @media (max-width: 900px) {
   .monitoring-layout {
     grid-template-columns: 1fr;
+  }
+
+  .monitoring-today-card {
+    flex-direction: column;
   }
 }

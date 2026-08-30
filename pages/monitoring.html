@@ -18,9 +18,23 @@
 
           <section class="card monitoring-feed-card">
             <div class="monitoring-feed">
-              <div class="monitoring-feed-placeholder">
+              <video id="monitoring-video" class="monitoring-video" autoplay playsinline muted hidden></video>
+
+              <div class="monitoring-feed-topleft">
+                <span class="monitoring-feed-dot" id="monitoring-feed-dot"></span>
+                <span id="monitoring-feed-status-text">IDLE</span>
+              </div>
+
+              <div class="monitoring-feed-topright">
+                <span id="monitoring-feed-datetime"></span>
+                <span id="monitoring-feed-camera-label" class="monitoring-feed-camera-label" hidden>
+                  Main Gate Camera Feed
+                </span>
+              </div>
+
+              <div class="monitoring-feed-placeholder" id="monitoring-feed-placeholder">
                 <span class="monitoring-feed-icon">&#128247;</span>
-                <span>Main Gate Camera Feed (simulated — no real video)</span>
+                <span id="monitoring-feed-placeholder-text">Main Gate Camera Feed (simulated — no video)</span>
               </div>
               <div class="monitoring-scanline" aria-hidden="true"></div>
             </div>
@@ -32,6 +46,25 @@
               <button type="button" class="btn btn-primary" id="monitoring-toggle">
                 Start Monitoring
               </button>
+            </div>
+          </section>
+
+          <section class="card monitoring-today-card">
+            <div class="monitoring-today-stat">
+              <span class="monitoring-today-value" id="today-status-value">Idle</span>
+              <span class="monitoring-today-label">Current Status</span>
+            </div>
+            <div class="monitoring-today-stat">
+              <span class="monitoring-today-value" id="today-total-value">0</span>
+              <span class="monitoring-today-label">Today's Detections</span>
+            </div>
+            <div class="monitoring-today-stat">
+              <span class="monitoring-today-value monitoring-today-value--compliant" id="today-compliant-value">0</span>
+              <span class="monitoring-today-label">Compliant</span>
+            </div>
+            <div class="monitoring-today-stat">
+              <span class="monitoring-today-value monitoring-today-value--violation" id="today-violation-value">0</span>
+              <span class="monitoring-today-label">Non-Compliant</span>
             </div>
           </section>
 
