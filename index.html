@@ -2,17 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=pages/dashboard.html" />
+  <meta http-equiv="refresh" content="0; url=pages/login.html" />
   <title>Uniform Compliance Monitoring System</title>
 </head>
 <body>
   <!--
-    Phase 0: redirects straight to the Dashboard so navigation between
-    pages can be tested with no login gate yet.
-    Phase 1 (Earl): change this redirect to pages/login.html once the
-    login/auth-simulation flow exists, so unauthenticated users land
-    there first.
+    Phase 1: redirects to the login page. requireAuth() on every protected
+    page will forward already-logged-in users straight past login.html to
+    the dashboard, so this is safe for both fresh and returning visitors.
   -->
-  <p>Redirecting to <a href="pages/dashboard.html">the dashboard</a>&hellip;</p>
+  <p>Redirecting to <a href="pages/login.html">the login page</a>&hellip;</p>
 </body>
 </html>

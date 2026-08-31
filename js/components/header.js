@@ -1,8 +1,9 @@
 /* ==========================================================================
    Header component
    Usage: renderHeader('Dashboard');
-   Login/real user identity comes in Phase 1 — for now this shows a
-   static demo placeholder so the shell looks complete.
+   User identity is still a static demo label (no real accounts — see
+   PROJECT_BRIEF.md Section 8). Logout is real as of Phase 1: it clears the
+   demo auth flag via js/auth.js and redirects to login.html.
    ========================================================================== */
 
 function renderHeader(pageTitle) {
@@ -15,7 +16,13 @@ function renderHeader(pageTitle) {
       <div class="header-user">
         <span class="header-user-avatar">A</span>
         <span>Admin (Demo)</span>
+        <button type="button" class="header-logout" id="logoutBtn">Log Out</button>
       </div>
     </header>
   `;
+
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+  }
 }

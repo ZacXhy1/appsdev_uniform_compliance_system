@@ -7,13 +7,42 @@
   <link rel="stylesheet" href="../css/global.css" />
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/pages/login.css" />
+  <script src="../js/auth.js"></script>
+  <script>
+    // If a demo session is already active, skip the form entirely.
+    // Runs synchronously in <head> so there's no flash of the login form.
+    if (isLoggedIn()) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
 </head>
 <body>
-  <main class="app-content" style="max-width: 400px; margin: 15vh auto;">
-    <div class="card">
-      <h1>Uniform Compliance</h1>
-      <p>Login screen — to be built in Phase 1 (owner: Earl).</p>
-      <div class="placeholder-block">Login form goes here</div>
+  <main class="login-page">
+    <div class="card login-card">
+      <div class="login-brand">
+        <span class="sidebar-brand-mark"></span>
+        <h1>Uniform Compliance</h1>
+      </div>
+      <p>Sign in to the monitoring dashboard.</p>
+
+      <p id="loginError" class="form-error" hidden></p>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary login-submit">Log In</button>
+      </form>
+
+      <p class="form-hint login-demo-note">
+        Demo build — not real security. Use <strong>admin</strong> /
+        <strong>admin123</strong>.
+      </p>
     </div>
   </main>
 

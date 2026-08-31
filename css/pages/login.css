@@ -2,5 +2,41 @@
    Login — page-specific styles
    Owner: Earl (Phase 1)
    Import global.css / components.css first — only add overrides here that
-   are truly specific to this page.
+   are truly specific to this page. No sidebar/header shell on this page.
    ========================================================================== */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: var(--color-bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.login-brand h1 {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.login-demo-note {
+  margin: var(--space-4) 0 0;
+  text-align: center;
+}
