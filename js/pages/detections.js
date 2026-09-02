@@ -2,12 +2,13 @@
    Detections — page logic
    Owner: Zachary (Phase 4)
 
-   Shows the full detection log from MOCK_DETECTIONS (js/data/mock-data.js)
-   — the same shared dataset Dashboard/Violations/Reports read from. This
-   page does NOT include Live Monitoring's session-generated detections;
-   those only exist in memory on the Monitoring page and aren't persisted
-   anywhere shared (no localStorage bridge). If that's ever needed, this
-   is the file to revisit.
+   Shows the session detection log via getSessionDetections()
+   (js/data/mock-data.js) — seeded from MOCK_DETECTIONS, then grows with
+   whatever Live Monitoring generates for the rest of this browser tab's
+   session (sessionStorage-backed, so it survives navigating between
+   pages but clears when the tab closes). Re-reads on every render so a
+   detection added on Monitoring shows up here the next time this page
+   loads or its own data changes.
    ========================================================================== */
 
 let searchTerm = '';
@@ -15,7 +16,9 @@ let statusFilter = 'all';
 let sortOrder = 'newest';
 
 function getFilteredSortedDetections() {
-  const filtered = MOCK_DETECTIONS.filter((d) => {
+  const allDetections = getSessionDetections();
+
+  const filtered = allDetections.filter((d) => {
     const matchesSearch = !searchTerm
       || d.id.toLowerCase().includes(searchTerm)
       || d.label.toLowerCase().includes(searchTerm);
@@ -30,13 +33,14 @@ function getFilteredSortedDetections() {
 }
 
 function renderTable() {
+  const allDetections = getSessionDetections();
   const results = getFilteredSortedDetections();
   const body = document.getElementById('detections-table-body');
   const countEl = document.getElementById('detections-count');
   const tableWrap = document.getElementById('detections-table-wrap');
   const emptyEl = document.getElementById('detections-empty');
 
-  countEl.textContent = `Showing ${results.length} of ${MOCK_DETECTIONS.length} detections`;
+  countEl.textContent = `Showing ${results.length} of ${allDetections.length} detections`;
 
   if (results.length === 0) {
     tableWrap.hidden = true;
@@ -66,7 +70,7 @@ function renderTable() {
 }
 
 function showDetectionDetails(id) {
-  const detection = MOCK_DETECTIONS.find((d) => d.id === id);
+  const detection = getSessionDetections().find((d) => d.id === id);
   if (!detection) return;
 
   const meta = getStatusPillMeta(detection.status);

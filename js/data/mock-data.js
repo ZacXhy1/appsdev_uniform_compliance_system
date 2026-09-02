@@ -96,6 +96,69 @@ function getMockSummaryStats(detections) {
   };
 }
 
+/* --------------------------------------------------------------------
+   Session-persisted detection log.
+
+   A plain in-memory array resets every time the browser loads a new
+   page — that's normal for a multi-page site with no backend, but it
+   means anything Live Monitoring "detects" would vanish the moment you
+   navigate away, and Detections would never see it. sessionStorage
+   fixes that: it survives navigation within the same tab, but clears
+   when the tab closes — exactly "persist for this session, not
+   forever."
+
+   getSessionDetections() is what every page should read from now
+   (Live Monitoring, Detections, and eventually Dashboard/Violations/
+   Reports) instead of the raw MOCK_DETECTIONS array, so a detection
+   generated on one page is immediately visible on every other page
+   too, for the rest of that browser session.
+   -------------------------------------------------------------------- */
+
+const SESSION_STORAGE_KEY = 'ucms_session_detections';
+
+/** Returns the current session's detection log, seeding it from
+ *  MOCK_DETECTIONS the first time it's ever called in a session. */
+function getSessionDetections() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (err) {
+    // sessionStorage unavailable (privacy mode, etc.) — fall through to
+    // the static seed below rather than breaking the page.
+  }
+  const seed = [...MOCK_DETECTIONS];
+  saveSessionDetections(seed);
+  return seed;
+}
+
+/** Overwrites the whole session detection log. */
+function saveSessionDetections(list) {
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(list));
+  } catch (err) {
+    // Ignore — worst case, state just won't persist across pages.
+  }
+}
+
+/** Appends one detection to the session log and persists it. Returns
+ *  the updated array. */
+function addSessionDetection(detection) {
+  const list = getSessionDetections();
+  list.push(detection);
+  saveSessionDetections(list);
+  return list;
+}
+
+/** Clears the session log back to the static seed. Not wired to any UI
+ *  yet — Settings (Phase 7) can call this for a "reset demo data" action. */
+function resetSessionDetections() {
+  sessionStorage.removeItem(SESSION_STORAGE_KEY);
+}
+
 window.CAMERA_LOCATION = CAMERA_LOCATION;
 window.MOCK_DETECTIONS = MOCK_DETECTIONS;
 window.getMockSummaryStats = getMockSummaryStats;
+window.getSessionDetections = getSessionDetections;
+window.saveSessionDetections = saveSessionDetections;
+window.addSessionDetection = addSessionDetection;
+window.resetSessionDetections = resetSessionDetections;

@@ -16,11 +16,13 @@
 
 const MONITORING_INTERVAL_MS = 4000;
 const MAX_RECENT_DISPLAY = 5;
+const MONITORING_ACTIVE_KEY = 'ucms_monitoring_active';
 
-// Full session history (never trimmed) — used to compute "today's" stats.
-// Seeded with the shared mock data so the stats aren't zero on first load.
-let allDetections = [...MOCK_DETECTIONS];
-let detectionCounter = MOCK_DETECTIONS.length;
+// Session-persisted history (see getSessionDetections() in
+// js/data/mock-data.js) — survives navigating to other pages within the
+// same tab, so Detections/Dashboard/etc. see what Monitoring generates.
+let allDetections = getSessionDetections();
+let detectionCounter = allDetections.length;
 let monitoringTimer = null;
 let isMonitoring = false;
 let cameraStream = null;
@@ -205,7 +207,7 @@ function updateStatusIndicator() {
 
 function tick() {
   const detection = generateDetection();
-  allDetections.push(detection);
+  allDetections = addSessionDetection(detection); // persists across page loads
   renderResultCard(detection);
   renderRecentDetections();
   renderTodayStats();
@@ -214,6 +216,7 @@ function tick() {
 function startMonitoring() {
   if (isMonitoring) return;
   isMonitoring = true;
+  sessionStorage.setItem(MONITORING_ACTIVE_KEY, 'true');
   updateStatusIndicator();
   tryAttachRealCamera(); // best-effort; falls back to simulated view on failure
   tick(); // fire one immediately so it doesn't feel idle for 4s
@@ -222,6 +225,7 @@ function startMonitoring() {
 
 function stopMonitoring() {
   isMonitoring = false;
+  sessionStorage.setItem(MONITORING_ACTIVE_KEY, 'false');
   clearInterval(monitoringTimer);
   monitoringTimer = null;
   stopRealCamera();
@@ -252,4 +256,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Release the camera if the user navigates away/closes the tab while
   // monitoring is running, rather than leaving the light on.
   window.addEventListener('beforeunload', stopRealCamera);
+
+  // If monitoring was left running when the user navigated to another
+  // page, resume it automatically on return — feels continuous, even
+  // though a real page load can't literally keep the old interval alive.
+  // Note: this does NOT "catch up" on ticks missed while away, and if a
+  // real camera was attached before, the browser will just ask for
+  // permission again (expected — a fresh page can't hold onto the old
+  // camera stream).
+  if (sessionStorage.getItem(MONITORING_ACTIVE_KEY) === 'true') {
+    startMonitoring();
+  }
 });
