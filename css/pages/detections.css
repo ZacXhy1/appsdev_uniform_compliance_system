@@ -4,3 +4,37 @@
    Import global.css / components.css first — only add overrides here that
    are truly specific to this page.
    ========================================================================== */
+
+.detections-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.detections-toolbar .input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.detections-toolbar .select {
+  min-width: 160px;
+}
+
+.detections-count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+#detections-table-wrap {
+  padding: 0;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .detections-toolbar .select {
+    flex: 1;
+    min-width: 140px;
+  }
+}

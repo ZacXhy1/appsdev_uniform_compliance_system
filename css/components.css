@@ -258,6 +258,59 @@
   width: 90%;
 }
 
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: var(--text-xl);
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: var(--color-text);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-row > span:first-child {
+  color: var(--color-text-muted);
+}
+
+.modal-row > span:last-child {
+  font-weight: 500;
+}
+
 /* --- Buttons --- */
 .btn {
   display: inline-flex;
@@ -285,6 +338,29 @@
   border: 1px solid var(--color-border);
 }
 .btn-secondary:hover { background: var(--color-bg); }
+
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+/* --- Filter inputs (toolbars — Detections, Violations, Reports) --- */
+.input,
+.select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-family: var(--font-body);
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
 
 /* --- Forms (shared: Login, Settings) --- */
 .form-group {

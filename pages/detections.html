@@ -16,10 +16,48 @@
     <div class="app-main">
       <div id="header"></div>
       <main class="app-content">
-        <div class="placeholder-block">
-          Detections — to be built in Phase 4 (owner: Zachary).
-          See docs/PHASES.md for the deliverable.
+
+        <div class="detections-toolbar">
+          <input
+            type="text"
+            id="detections-search"
+            class="input"
+            placeholder="Search by detection ID or student label…"
+          />
+          <select id="detections-status-filter" class="select">
+            <option value="all">All Statuses</option>
+            <option value="compliant">Compliant</option>
+            <option value="violation">Violation</option>
+            <option value="pending">Pending Review</option>
+          </select>
+          <select id="detections-sort" class="select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
         </div>
+
+        <p class="detections-count" id="detections-count"></p>
+
+        <div class="card" id="detections-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Detected</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="detections-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card placeholder-block" id="detections-empty" hidden>
+          No detections match your search or filters. Try adjusting them.
+        </div>
+
       </main>
     </div>
   </div>
