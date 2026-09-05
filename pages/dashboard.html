@@ -16,10 +16,49 @@
     <div class="app-main">
       <div id="header"></div>
       <main class="app-content">
-        <div class="placeholder-block">
-          Dashboard — to be built in Phase 2 (owner: Paul).
-          See docs/PHASES.md for the deliverable.
+
+        <div class="card dashboard-monitoring-banner">
+          <span class="dashboard-monitoring-dot" id="dashboard-monitoring-dot"></span>
+          <span id="dashboard-monitoring-text">Checking monitoring status&hellip;</span>
+          <a class="btn btn-secondary btn-sm dashboard-monitoring-link" href="monitoring.html">
+            Live Monitoring &rarr;
+          </a>
         </div>
+
+        <div class="dashboard-summary-cards" id="dashboard-summary-cards"></div>
+
+        <div class="dashboard-grid">
+          <div class="card dashboard-chart-card">
+            <h2>Compliance Overview</h2>
+            <div class="dashboard-chart-row">
+              <div class="dashboard-donut" id="dashboard-donut">
+                <div class="dashboard-donut-center" id="dashboard-donut-center"></div>
+              </div>
+              <div class="dashboard-donut-legend" id="dashboard-donut-legend"></div>
+            </div>
+          </div>
+
+          <div class="card dashboard-activity-card">
+            <div class="dashboard-activity-header">
+              <h2>Recent Activity</h2>
+              <a href="detections.html">View all &rarr;</a>
+            </div>
+            <div id="dashboard-activity-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Detected</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboard-recent-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </main>
     </div>
   </div>

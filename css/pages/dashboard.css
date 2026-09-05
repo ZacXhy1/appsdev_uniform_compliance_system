@@ -4,3 +4,172 @@
    Import global.css / components.css first — only add overrides here that
    are truly specific to this page.
    ========================================================================== */
+
+/* --- Monitoring status banner --- */
+.dashboard-monitoring-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.dashboard-monitoring-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Reuses the pulse-ring keyframes already defined in components.css
+   (sidebar brand mark uses the same trick) — same visual language as the
+   "LIVE" indicator on the Monitoring page. */
+.dashboard-monitoring-dot.is-live {
+  background: var(--color-success);
+  position: relative;
+}
+
+.dashboard-monitoring-dot.is-live::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-success);
+  animation: pulse-ring 2.2s ease-out infinite;
+}
+
+.dashboard-monitoring-link {
+  margin-left: auto;
+}
+
+/* --- Summary cards --- */
+.dashboard-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+/* --- Chart + activity row ---
+   align-items: start so the shorter chart card never stretches to match
+   the taller activity table (same lesson learned building Monitoring —
+   see PROJECT_BRIEF.md Section 13). */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  align-items: start;
+  gap: var(--space-5);
+}
+
+/* --- Compliance donut chart ---
+   Built with a CSS conic-gradient, not a charting library, per
+   PROJECT_BRIEF.md Section 25 ("avoid unnecessary libraries"). The colors
+   are set inline by dashboard.js since they depend on live data. */
+.dashboard-chart-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.dashboard-donut {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dashboard-donut-center {
+  position: absolute;
+  inset: 24px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.dashboard-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 160px;
+}
+
+.dashboard-legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.dashboard-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dashboard-legend-dot--success { background: var(--color-success); }
+.dashboard-legend-dot--danger { background: var(--color-danger); }
+.dashboard-legend-dot--warning { background: var(--color-warning); }
+
+.dashboard-legend-count {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+/* --- Recent activity card --- */
+.dashboard-activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.dashboard-activity-header h2 {
+  margin: 0;
+}
+
+.dashboard-activity-header a {
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+#dashboard-activity-table-wrap {
+  overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+  .dashboard-summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-monitoring-banner {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-monitoring-link {
+    margin-left: 0;
+    width: 100%;
+  }
+}

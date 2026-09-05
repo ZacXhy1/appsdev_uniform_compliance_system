@@ -200,6 +200,11 @@
   font-weight: 700;
 }
 
+/* Optional color accents — see js/components/stat-card.js's `tone` param */
+.stat-card-value--success { color: var(--color-success); }
+.stat-card-value--danger { color: var(--color-danger); }
+.stat-card-value--primary { color: var(--color-primary); }
+
 .stat-card-label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
