@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/pages/violations.css" />
   <script src="../js/auth.js"></script>
+  <script src="../js/settings.js"></script>
   <script>requireAuth();</script>
 </head>
 <body>
@@ -16,10 +17,56 @@
     <div class="app-main">
       <div id="header"></div>
       <main class="app-content">
-        <div class="placeholder-block">
-          Violations — to be built in Phase 5 (owner: Dean).
-          See docs/PHASES.md for the deliverable.
+
+        <div class="stats-grid" id="violations-stats"></div>
+
+        <div class="violations-toolbar">
+          <input
+            type="text"
+            id="violations-search"
+            class="input"
+            placeholder="Search by detection ID or student label…"
+          />
+          <select id="violations-date-filter" class="select">
+            <option value="all">All Dates</option>
+          </select>
+          <select id="violations-sort" class="select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
         </div>
+
+        <p class="violations-count" id="violations-count"></p>
+
+        <div class="card" id="violations-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Detected</th>
+                <th>Date &amp; Time</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="violations-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card placeholder-block" id="violations-empty" hidden>
+          No violations match your search or filters. Try adjusting them.
+        </div>
+
+        <div class="card violations-summary" id="violations-summary-card">
+          <h2>Violations by Date</h2>
+          <p class="form-hint">
+            A count of violations recorded on each day in the current session,
+            most recent first.
+          </p>
+          <div id="violations-by-date"></div>
+        </div>
+
       </main>
     </div>
   </div>

@@ -4,3 +4,92 @@
    Import global.css / components.css first — only add overrides here that
    are truly specific to this page.
    ========================================================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.violations-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.violations-toolbar .input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.violations-toolbar .select {
+  min-width: 160px;
+}
+
+.violations-count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+#violations-table-wrap {
+  padding: 0;
+  overflow-x: auto;
+  margin-bottom: var(--space-5);
+}
+
+.violations-summary h2 {
+  margin-bottom: var(--space-1);
+}
+
+.violations-by-date-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+.violations-by-date-row:last-child {
+  border-bottom: none;
+}
+
+.violations-by-date-label {
+  width: 140px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.violations-by-date-bar-track {
+  flex: 1;
+  background: var(--color-bg);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.violations-by-date-bar-fill {
+  height: 100%;
+  background: var(--color-danger);
+  border-radius: 999px;
+}
+
+.violations-by-date-count {
+  width: 32px;
+  text-align: right;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .violations-toolbar .select {
+    flex: 1;
+    min-width: 140px;
+  }
+  .violations-by-date-label {
+    width: 96px;
+  }
+}
