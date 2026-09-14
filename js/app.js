@@ -39,3 +39,63 @@ function getStatusPillMeta(status) {
       return { className: 'status-pill--pending', label: 'Unknown' };
   }
 }
+
+/**
+ * Shows a small transient confirmation toast in the bottom-right corner.
+ * Used by Settings (Phase 7) to confirm preference changes and demo
+ * resets, but any page can call it. Creates its container on first use.
+ * @param {string} message
+ * @param {'success'|'warning'} [variant]
+ */
+function showToast(message, variant = 'success') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${variant}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    toast.classList.add('is-visible');
+  }));
+
+  setTimeout(() => {
+    toast.classList.remove('is-visible');
+    setTimeout(() => toast.remove(), 220);
+  }, 3200);
+}
+
+/**
+ * Opens a confirm/cancel modal (built on openModal() from modal.js) and
+ * runs `onConfirm` only if the user confirms. Used for destructive demo
+ * actions like resetting data, so a stray click can't silently wipe state.
+ * @param {string} title
+ * @param {string} message
+ * @param {() => void} onConfirm
+ */
+function confirmAction(title, message, onConfirm) {
+  openModal(`
+    <div class="modal-header">
+      <h2>${title}</h2>
+      <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0;">${message}</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-confirm-btn">Confirm</button>
+    </div>
+  `);
+
+  document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+    closeModal();
+    onConfirm();
+  });
+}

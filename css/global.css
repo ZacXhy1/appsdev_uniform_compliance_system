@@ -159,3 +159,36 @@ img { max-width: 100%; display: block; }
     transition-duration: 0.001ms !important;
   }
 }
+
+:root[data-theme='dark'] {
+  --color-primary-light: rgba(37, 99, 235, 0.18);
+  --color-success-bg: rgba(34, 197, 94, 0.16);
+  --color-danger-bg: rgba(239, 68, 68, 0.18);
+  --color-warning-bg: rgba(245, 158, 11, 0.18);
+
+  --color-dark: #0B1220;
+  --color-dark-hover: #1F2937;
+  --color-border: #303B4C;
+
+  --color-bg: #111827;
+  --color-surface: #1A2332;
+
+  --color-text: #F3F4F6;
+  --color-text-muted: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* --- Density override (Settings — Phase 7: Compact View) ---
+   Tightens the shared spacing scale that cards, tables, and the app
+   shell all read from, rather than duplicating a compact variant of
+   every component. */
+:root[data-density='compact'] {
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --header-height: 56px;
+}

@@ -4,3 +4,66 @@
    Import global.css / components.css first — only add overrides here that
    are truly specific to this page.
    ========================================================================== */
+/* ==========================================================================
+   Settings — page-specific styles
+   Owner: Dean (Phase 7)
+   Import global.css / components.css first — only add overrides here that
+   are truly specific to this page.
+   ========================================================================== */
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 640px;
+}
+
+.settings-section h2 {
+  margin-bottom: var(--space-1);
+}
+
+.settings-section > .form-hint {
+  margin: 0 0 var(--space-4);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-section h2 + .settings-row,
+.settings-section > .form-hint + .settings-row {
+  border-top: none;
+  padding-top: 0;
+}
+
+.settings-row-text strong {
+  display: block;
+  font-size: var(--text-sm);
+  margin-bottom: 2px;
+}
+
+.settings-row-text .form-hint {
+  margin: 0;
+}
+
+.settings-row--action {
+  align-items: center;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 640px) {
+  .settings-row {
+    align-items: flex-start;
+  }
+}
