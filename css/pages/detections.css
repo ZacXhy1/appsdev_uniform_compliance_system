@@ -38,3 +38,35 @@
     min-width: 140px;
   }
 }
+
+/* Banner shown when detections are waiting for manual review */
+.review-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.review-banner[hidden] { display: none; }
+
+.review-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.review-actions .btn { flex: 1; }
+
+.review-note {
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

@@ -60,8 +60,8 @@ function renderTable() {
         <td><span class="status-pill ${meta.className}">${meta.label}</span></td>
         <td>${Math.round(d.confidence * 100)}%</td>
         <td>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="showDetectionDetails('${d.id}')">
-            View
+          <button type="button" class="btn ${d.status === 'pending' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="showDetectionDetails('${d.id}')">
+            ${d.status === 'pending' ? 'Review' : 'View'}
           </button>
         </td>
       </tr>
@@ -87,8 +87,39 @@ function showDetectionDetails(id) {
       <div class="modal-row"><span>Location</span><span>${CAMERA_LOCATION}</span></div>
       <div class="modal-row"><span>Status</span><span class="status-pill ${meta.className}">${meta.label}</span></div>
       <div class="modal-row"><span>Confidence</span><span>${Math.round(detection.confidence * 100)}%</span></div>
+      ${detection.reviewed ? '<div class="modal-row"><span>Review</span><span>Manually reviewed</span></div>' : ''}
     </div>
+    ${detection.status === 'pending' ? `
+      <p class="review-note">
+        The system wasn't confident about this detection. Check it and
+        confirm the correct result.
+      </p>
+      <div class="review-actions">
+        <button type="button" class="btn btn-success" onclick="reviewDetection('${detection.id}', 'compliant')">Confirm Compliant</button>
+        <button type="button" class="btn btn-danger" onclick="reviewDetection('${detection.id}', 'violation')">Confirm Violation</button>
+      </div>
+    ` : ''}
   `);
+}
+
+/** Saves a manual review decision, then refreshes the page's UI. */
+function reviewDetection(id, newStatus) {
+  const updated = reviewSessionDetection(id, newStatus);
+  if (!updated) return;
+  closeModal();
+  renderReviewBanner();
+  renderTable();
+  const label = newStatus === 'compliant' ? 'compliant' : 'a violation';
+  showToast(`${id} confirmed as ${label}.`);
+}
+
+/** Shows/hides the "N detections need review" banner. */
+function renderReviewBanner() {
+  const pendingCount = getSessionDetections().filter((d) => d.status === 'pending').length;
+  const banner = document.getElementById('review-banner');
+  banner.hidden = pendingCount === 0;
+  document.getElementById('review-banner-text').textContent =
+    `${pendingCount} detection${pendingCount === 1 ? '' : 's'} need${pendingCount === 1 ? 's' : ''} manual review.`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -109,5 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable();
   });
 
+  // Banner button jumps straight to the pending detections.
+  document.getElementById('review-banner-btn').addEventListener('click', () => {
+    statusFilter = 'pending';
+    document.getElementById('detections-status-filter').value = 'pending';
+    renderTable();
+  });
+
+  renderReviewBanner();
   renderTable();
 });

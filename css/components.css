@@ -91,9 +91,19 @@
 }
 
 .sidebar-link-icon {
-  width: 18px;
-  text-align: center;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  color: #8ea2bf; /* muted blue-gray for inactive icons */
+  transition: color var(--transition-fast);
+}
+
+.sidebar-link:hover .sidebar-link-icon,
+.sidebar-link.is-active .sidebar-link-icon {
+  color: var(--color-text-inverse);
 }
 
 .sidebar-footer {
@@ -343,6 +353,19 @@
   border: 1px solid var(--color-border);
 }
 .btn-secondary:hover { background: var(--color-bg); }
+
+.btn-success {
+  background: var(--color-success);
+  color: var(--color-text-inverse);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+
+.btn-success:hover,
+.btn-danger:hover { opacity: 0.9; }
 
 .btn-sm {
   padding: var(--space-1) var(--space-3);

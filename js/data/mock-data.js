@@ -149,6 +149,24 @@ function addSessionDetection(detection) {
   return list;
 }
 
+/** Manual review of a 'pending' detection: a staff member decides whether
+ *  the unclear detection was actually compliant or a violation. Updates
+ *  the status in the session log and marks the record `reviewed: true`
+ *  so the UI can show it was resolved by a person, not the "AI".
+ *  Because every page reads getSessionDetections(), Dashboard, Violations
+ *  and Reports all reflect the decision automatically.
+ *  Returns the updated detection, or null if it wasn't found/pending. */
+function reviewSessionDetection(id, newStatus) {
+  if (newStatus !== 'compliant' && newStatus !== 'violation') return null;
+  const list = getSessionDetections();
+  const detection = list.find((d) => d.id === id);
+  if (!detection || detection.status !== 'pending') return null;
+  detection.status = newStatus;
+  detection.reviewed = true;
+  saveSessionDetections(list);
+  return detection;
+}
+
 /** Clears the session log back to the static seed. Not wired to any UI
  *  yet — Settings (Phase 7) can call this for a "reset demo data" action. */
 function resetSessionDetections() {
@@ -162,3 +180,4 @@ window.getSessionDetections = getSessionDetections;
 window.saveSessionDetections = saveSessionDetections;
 window.addSessionDetection = addSessionDetection;
 window.resetSessionDetections = resetSessionDetections;
+window.reviewSessionDetection = reviewSessionDetection;
