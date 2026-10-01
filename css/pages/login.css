@@ -45,7 +45,6 @@
   text-align: center;
 }
 
-/* --- Input icons (username / password) --- */
 .input-icon-wrap {
   position: relative;
   display: flex;
@@ -55,12 +54,16 @@
 .input-icon {
   position: absolute;
   left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
   font-size: var(--text-sm);
   opacity: 0.5;
   filter: grayscale(100%);
   pointer-events: none;
+  line-height: 1;
 }
 
 .input-icon-wrap input {
   padding-left: calc(var(--space-3) * 2 + 14px);
+  width: 100%;
 }

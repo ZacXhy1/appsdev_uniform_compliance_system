@@ -14,6 +14,8 @@
 let searchTerm = '';
 let statusFilter = 'all';
 let sortOrder = 'newest';
+let currentPage = 1;
+const DETECTIONS_PER_PAGE = 15;
 
 function getFilteredSortedDetections() {
   const allDetections = getSessionDetections();
@@ -40,9 +42,8 @@ function renderTable() {
   const tableWrap = document.getElementById('detections-table-wrap');
   const emptyEl = document.getElementById('detections-empty');
 
-  countEl.textContent = `Showing ${results.length} of ${allDetections.length} detections`;
-
   if (results.length === 0) {
+    countEl.textContent = `Showing 0 of ${allDetections.length} detections`;
     tableWrap.hidden = true;
     emptyEl.hidden = false;
     return;
@@ -50,7 +51,24 @@ function renderTable() {
   tableWrap.hidden = false;
   emptyEl.hidden = true;
 
-  body.innerHTML = results.map((d) => {
+  // Slice out just the rows for the current page. Clamp the page number in
+  // case the results shrank (e.g. a filter was applied or a review moved a
+  // row out of the current filter) and the old page no longer exists.
+  const totalPages = Math.ceil(results.length / DETECTIONS_PER_PAGE);
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (currentPage - 1) * DETECTIONS_PER_PAGE;
+  const pageRows = results.slice(startIndex, startIndex + DETECTIONS_PER_PAGE);
+
+  const totalNote = results.length === allDetections.length ? '' : ` (${allDetections.length} total)`;
+  countEl.textContent = `Showing ${startIndex + 1}\u2013${startIndex + pageRows.length} of ${results.length} detections${totalNote}`;
+
+  renderPagination(document.getElementById('detections-pagination'), currentPage, totalPages, (page) => {
+    currentPage = page;
+    renderTable();
+    tableWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  body.innerHTML = pageRows.map((d) => {
     const meta = getStatusPillMeta(d.status);
     return `
       <tr>
@@ -129,16 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('detections-search').addEventListener('input', (event) => {
     searchTerm = event.target.value.trim().toLowerCase();
+    currentPage = 1;
     renderTable();
   });
 
   document.getElementById('detections-status-filter').addEventListener('change', (event) => {
     statusFilter = event.target.value;
+    currentPage = 1;
     renderTable();
   });
 
   document.getElementById('detections-sort').addEventListener('change', (event) => {
     sortOrder = event.target.value;
+    currentPage = 1;
     renderTable();
   });
 
@@ -146,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('review-banner-btn').addEventListener('click', () => {
     statusFilter = 'pending';
     document.getElementById('detections-status-filter').value = 'pending';
+    currentPage = 1;
     renderTable();
   });
 

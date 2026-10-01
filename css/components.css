@@ -402,6 +402,52 @@
   font-size: var(--text-xs);
 }
 
+/* --- Pagination (js/components/pagination.js) --- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.pagination[hidden] { display: none; }
+
+.pagination-btn {
+  min-width: 36px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled):not(.is-active) { background: var(--color-bg); }
+
+.pagination-btn.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  cursor: default;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-gap {
+  padding: 0 var(--space-1);
+  color: var(--color-text-muted);
+}
+
 /* --- Filter inputs (toolbars — Detections, Violations, Reports) --- */
 .input,
 .select {
