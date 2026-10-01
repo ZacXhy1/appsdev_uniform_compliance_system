@@ -99,3 +99,25 @@ function confirmAction(title, message, onConfirm) {
     onConfirm();
   });
 }
+
+/**
+ * Evidence snapshot frame — the photo/video "proof" shown with a detection
+ * on Live Monitoring, Detections and Violations (incl. the review modal).
+ * For now it's an empty avatar placeholder because nothing analyzes real
+ * video (see brief Sections 2 & 13). When real snapshots exist, this is
+ * the ONE function to change: render an <img>/<video> instead of the SVG.
+ * @param {object} detection - the detection record (unused until real
+ *   snapshots exist, but passed so call sites won't need to change)
+ * @param {boolean} [compact] - smaller frame, used inside modals
+ */
+function renderEvidenceFrame(detection, compact = false) {
+  const sizeClass = compact ? ' evidence-frame--compact' : '';
+  return `
+    <div class="evidence-frame${sizeClass}" role="img" aria-label="Snapshot for ${detection.label} (placeholder)">
+      <svg viewBox="0 0 200 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <circle cx="100" cy="58" r="30" fill="currentColor"/>
+        <path d="M30 150c0-38 31-58 70-58s70 20 70 58z" fill="currentColor"/>
+      </svg>
+    </div>
+  `;
+}

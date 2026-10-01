@@ -173,6 +173,8 @@ function showViolationDetails(id) {
       <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
+      ${renderEvidenceFrame(violation, true)}
+      <p class="evidence-caption">Snapshot from ${CAMERA_LOCATION} (placeholder)</p>
       <div class="modal-row"><span>Detection ID</span><span>${violation.id}</span></div>
       <div class="modal-row"><span>Detected</span><span>${violation.label}</span></div>
       <div class="modal-row"><span>Date &amp; Time</span><span>${formatTimestamp(violation.timestamp)}</span></div>

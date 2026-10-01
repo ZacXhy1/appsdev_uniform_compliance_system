@@ -190,6 +190,36 @@
 }
 .status-pill--pending::before { background: var(--color-warning); }
 
+/* --- Evidence frame (photo/video snapshot of a detection) ---
+   Empty-avatar placeholder for now — see renderEvidenceFrame() in app.js. */
+.evidence-frame {
+  background: #E5E7EB;           /* matches --color-border */
+  color: #9CA3AF;                /* avatar silhouette */
+  border-radius: var(--radius-sm);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.evidence-frame svg {
+  width: 100%;
+  height: 100%;
+}
+
+.evidence-frame--compact {
+  aspect-ratio: auto;
+  height: 180px;
+}
+
+.evidence-caption {
+  margin: calc(var(--space-2) * -1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 /* --- Card --- */
 .card {
   background: var(--color-surface);

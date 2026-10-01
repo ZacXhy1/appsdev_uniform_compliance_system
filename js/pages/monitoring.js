@@ -127,6 +127,7 @@ function renderResultCard(detection) {
 
   mount.innerHTML = `
     <div class="monitoring-result">
+      ${renderEvidenceFrame(detection)}
       <div class="monitoring-result-row">
         <span class="monitoring-result-label">${detection.label}</span>
         <span class="status-pill ${meta.className}">${meta.label}</span>

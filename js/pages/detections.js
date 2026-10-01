@@ -81,6 +81,8 @@ function showDetectionDetails(id) {
       <button type="button" class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
+      ${renderEvidenceFrame(detection, true)}
+      <p class="evidence-caption">Snapshot from ${CAMERA_LOCATION} (placeholder)</p>
       <div class="modal-row"><span>Detection ID</span><span>${detection.id}</span></div>
       <div class="modal-row"><span>Detected</span><span>${detection.label}</span></div>
       <div class="modal-row"><span>Date &amp; Time</span><span>${formatTimestamp(detection.timestamp)}</span></div>
@@ -91,8 +93,8 @@ function showDetectionDetails(id) {
     </div>
     ${detection.status === 'pending' ? `
       <p class="review-note">
-        The system wasn't confident about this detection. Check it and
-        confirm the correct result.
+        The system wasn't confident about this detection. Check the
+        snapshot above and confirm the correct result.
       </p>
       <div class="review-actions">
         <button type="button" class="btn btn-success" onclick="reviewDetection('${detection.id}', 'compliant')">Confirm Compliant</button>
