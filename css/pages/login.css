@@ -11,7 +11,11 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-5);
-  background: var(--color-bg);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.5)),
+    url('../../assets/images/login-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-card {
@@ -39,4 +43,24 @@
 .login-demo-note {
   margin: var(--space-4) 0 0;
   text-align: center;
+}
+
+/* --- Input icons (username / password) --- */
+.input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--space-3);
+  font-size: var(--text-sm);
+  opacity: 0.5;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.input-icon-wrap input {
+  padding-left: calc(var(--space-3) * 2 + 14px);
 }
