@@ -57,16 +57,4 @@
 
 .review-banner[hidden] { display: none; }
 
-.review-actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-5);
-}
-
-.review-actions .btn { flex: 1; }
-
-.review-note {
-  margin: var(--space-5) 0 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
+/* .review-actions / .review-note moved to components.css (shared with Violations). */

@@ -121,3 +121,50 @@ function renderEvidenceFrame(detection, compact = false) {
     </div>
   `;
 }
+
+/**
+ * Footer for a details modal that lets staff correct a CONFIDENT result
+ * the system got wrong (compliant <-> violation). Returns '' for pending
+ * detections — those use the existing "Confirm Compliant / Confirm
+ * Violation" review flow on the Detections page instead.
+ * Used by Detections and Violations so both modals behave identically.
+ */
+function renderCorrectionActions(detection) {
+  if (detection.status === 'compliant') {
+    return `
+      <p class="review-note">Think the system got this wrong? You can correct the result.</p>
+      <div class="review-actions">
+        <button type="button" class="btn btn-danger" onclick="correctDetection('${detection.id}', 'violation')">Change to Violation</button>
+      </div>
+    `;
+  }
+  if (detection.status === 'violation') {
+    return `
+      <p class="review-note">Think the system got this wrong? You can correct the result.</p>
+      <div class="review-actions">
+        <button type="button" class="btn btn-success" onclick="correctDetection('${detection.id}', 'compliant')">Change to Compliant</button>
+      </div>
+    `;
+  }
+  return '';
+}
+
+/**
+ * Asks for confirmation, then saves the correction via
+ * correctSessionDetection() (mock-data.js). Afterwards it calls the
+ * page's own refreshAfterStatusChange() — each page that uses
+ * renderCorrectionActions() defines that function to re-render itself.
+ */
+function correctDetection(id, newStatus) {
+  const label = newStatus === 'violation' ? 'Violation' : 'Compliant';
+  confirmAction(
+    `Change ${id} to ${label}?`,
+    'This overrides the system\'s result and marks the detection as manually reviewed. '
+      + 'Dashboard, Violations and Reports will update to match.',
+    () => {
+      if (!correctSessionDetection(id, newStatus)) return;
+      if (typeof refreshAfterStatusChange === 'function') refreshAfterStatusChange();
+      showToast(`${id} changed to ${label.toLowerCase()}.`);
+    },
+  );
+}

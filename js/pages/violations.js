@@ -181,8 +181,16 @@ function showViolationDetails(id) {
       <div class="modal-row"><span>Location</span><span>${CAMERA_LOCATION}</span></div>
       <div class="modal-row"><span>Status</span><span class="status-pill ${meta.className}">${meta.label}</span></div>
       <div class="modal-row"><span>Confidence</span><span>${Math.round(violation.confidence * 100)}%</span></div>
+      ${violation.reviewed ? '<div class="modal-row"><span>Review</span><span>Manually reviewed</span></div>' : ''}
     </div>
+    ${renderCorrectionActions(violation)}
   `);
+}
+
+/** Called by correctDetection() (app.js) after a status correction — a
+ *  record changed to compliant drops off this page, so re-render it all. */
+function refreshAfterStatusChange() {
+  renderAll();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

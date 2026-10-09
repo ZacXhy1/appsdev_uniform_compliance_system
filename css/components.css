@@ -5,7 +5,19 @@
    ========================================================================== */
 
 /* --- Sidebar --- */
+/* The #sidebar mount point is the flex child of .app-shell, so it
+   stretches to full page height; the <aside> inside it then pins itself
+   to the viewport (sticky) so the dark column always runs top to bottom
+   and stays in place while long pages scroll. */
+#sidebar {
+  flex-shrink: 0;
+}
+
 .sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
   width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--color-dark);
@@ -639,4 +651,21 @@
   .toast {
     max-width: none;
   }
+}
+
+/* --- Manual review / correction actions (modal footer) ---
+   Used by Detections (pending review + corrections) and Violations
+   (corrections), so it lives here rather than in a page stylesheet. */
+.review-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.review-actions .btn { flex: 1; }
+
+.review-note {
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }

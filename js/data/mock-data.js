@@ -167,6 +167,28 @@ function reviewSessionDetection(id, newStatus) {
   return detection;
 }
 
+/** Manual CORRECTION of a confident detection: the system labelled someone
+ *  'compliant' or 'violation' with high confidence (so it never went to
+ *  pending review) but a staff member can see it got it wrong. Flips the
+ *  status to the other value and marks the record `reviewed: true` — same
+ *  flag reviewSessionDetection() uses, meaning "a person decided this".
+ *  Every page reads getSessionDetections(), so Dashboard, Violations and
+ *  Reports all update automatically.
+ *  Returns the updated detection, or null if it wasn't found or the
+ *  change isn't a valid compliant <-> violation switch. */
+function correctSessionDetection(id, newStatus) {
+  if (newStatus !== 'compliant' && newStatus !== 'violation') return null;
+  const list = getSessionDetections();
+  const detection = list.find((d) => d.id === id);
+  if (!detection) return null;
+  if (detection.status !== 'compliant' && detection.status !== 'violation') return null;
+  if (detection.status === newStatus) return null;
+  detection.status = newStatus;
+  detection.reviewed = true;
+  saveSessionDetections(list);
+  return detection;
+}
+
 /** Clears the session log back to the static seed. Not wired to any UI
  *  yet — Settings (Phase 7) can call this for a "reset demo data" action. */
 function resetSessionDetections() {
@@ -181,3 +203,4 @@ window.saveSessionDetections = saveSessionDetections;
 window.addSessionDetection = addSessionDetection;
 window.resetSessionDetections = resetSessionDetections;
 window.reviewSessionDetection = reviewSessionDetection;
+window.correctSessionDetection = correctSessionDetection;

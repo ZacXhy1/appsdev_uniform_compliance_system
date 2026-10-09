@@ -118,8 +118,14 @@ function showDetectionDetails(id) {
         <button type="button" class="btn btn-success" onclick="reviewDetection('${detection.id}', 'compliant')">Confirm Compliant</button>
         <button type="button" class="btn btn-danger" onclick="reviewDetection('${detection.id}', 'violation')">Confirm Violation</button>
       </div>
-    ` : ''}
+    ` : renderCorrectionActions(detection)}
   `);
+}
+
+/** Called by correctDetection() (app.js) after a status correction. */
+function refreshAfterStatusChange() {
+  renderReviewBanner();
+  renderTable();
 }
 
 /** Saves a manual review decision, then refreshes the page's UI. */
