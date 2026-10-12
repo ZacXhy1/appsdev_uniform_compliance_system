@@ -179,4 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderReviewBanner();
   renderTable();
+
+  // Live Monitoring keeps detecting in the background (see
+  // js/monitoring-engine.js) — pick up new rows as they arrive. Search,
+  // filter, sort and the current page are untouched by a refresh.
+  MonitoringEngine.onDetections(() => {
+    renderReviewBanner();
+    renderTable();
+  });
 });

@@ -29,11 +29,20 @@ Login · Dashboard · Live Monitoring · Detections · Violations · Reports · 
 
 - **Login** — demo login (`admin` / `admin123`) with a navigation guard on every
   protected page and a working logout. Simulated only, not real security.
-- **Dashboard** — summary cards, compliance chart, recent activity, and Live
-  Monitoring status, all computed from the shared detection log.
+- **Dashboard** — sized to fit one screen on desktop (no scrolling): Live
+  Monitoring status, a decorative looping hologram video (`assets/video/uniform-hologram.mp4`,
+  no controls) with the four KPI cards stacked beside it, then the compliance
+  donut, an empty **bar chart placeholder** card, and Recent Activity (shows as
+  many rows as fit, up to 8). Smaller windows fall back to a normal scrolling
+  layout. Everything is computed from the shared detection log.
 - **Live Monitoring** — optional real webcam feed (visual only, with a
   simulated fallback), live clock, start/stop, simulated detections every few
-  seconds, and a Latest Detection card with a snapshot frame.
+  seconds, and a Latest Detection card with a snapshot frame. **Monitoring keeps
+  running on every other page** once started: the timer lives in
+  `js/monitoring-engine.js` (loaded on all pages), so Dashboard, Detections,
+  Violations and Reports update live as detections arrive, a "Monitoring live"
+  pill shows in the header, and new violations raise an alert if Settings →
+  Detection Alerts is on. State is per browser tab; logging out stops it.
 - **Detections** — search, status filter, sorting, pagination (15 per page),
   and a details modal with a snapshot frame. Detections the system was unsure
   about (`pending`) can be **manually reviewed** and confirmed as compliant or
@@ -80,12 +89,14 @@ appsdev_uniform_compliance_system/
 │   ├── app.js                 # Shell init, formatters, toast/confirm helpers, snapshot frame
 │   ├── auth.js                # Demo login / logout / nav guard
 │   ├── settings.js            # Preferences store + theme/density application
+│   ├── monitoring-engine.js   # Background detection timer, loaded on EVERY page (see Live Monitoring)
 │   ├── data/
 │   │   └── mock-data.js       # SINGLE source of truth: seed data + session detection log
 │   ├── components/            # Reusable UI (sidebar, header, stat-card, modal, pagination)
 │   └── pages/                 # One script per screen
 ├── assets/
-│   ├── images/
+│   ├── images/                # Includes the hologram video's poster frame
+│   ├── video/                 # Dashboard hero video (muted, looping, no audio)
 │   └── icons/
 ├── docs/
 │   ├── TEAM.md                 # Ownership & who's working on what

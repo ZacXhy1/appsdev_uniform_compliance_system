@@ -37,6 +37,10 @@ function login(username, password) {
 /** Clears the demo login flag and sends the user back to the login page. */
 function logout() {
   localStorage.removeItem(AUTH_STORAGE_KEY);
+  // Background monitoring (js/monitoring-engine.js) must not outlive the
+  // login. Raw key strings: this file loads before the engine.
+  sessionStorage.removeItem('ucms_monitoring_active');
+  sessionStorage.removeItem('ucms_monitoring_next_due');
   window.location.href = 'login.html';
 }
 

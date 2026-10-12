@@ -56,7 +56,7 @@
 
   /* --- Layout --- */
   --sidebar-width: 240px;
-  --header-height: 64px;
+  --header-height: 52px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -144,7 +144,9 @@ img { max-width: 100%; display: block; }
 
 .app-content {
   flex: 1;
-  padding: var(--space-6);
+  /* Short top padding: the header already provides breathing room, and the two
+     stacked used to leave a big empty band above every page's content. */
+  padding: var(--space-4) var(--space-6) var(--space-6);
 }
 
 @media (max-width: 768px) {
@@ -190,7 +192,7 @@ img { max-width: 100%; display: block; }
   --space-4: 12px;
   --space-5: 16px;
   --space-6: 20px;
-  --header-height: 56px;
+  --header-height: 48px;
 }
 
 /* ==========================================================================

@@ -38,10 +38,16 @@ function populateDateFilterOptions() {
     .sort()
     .reverse();
 
-  const previousValue = select.value;
-  select.innerHTML = '<option value="all">All Dates</option>'
-    + dateKeys.map((key) => `<option value="${key}">${formatDateLabel(key)}</option>`).join('');
-  select.value = dateKeys.includes(previousValue) ? previousValue : 'all';
+  // Only rebuild when the set of dates changed — rebuilding on every live
+  // update would snap shut a dropdown the user has open.
+  const signature = dateKeys.join(',');
+  if (select.dataset.dates !== signature) {
+    const previousValue = select.value;
+    select.innerHTML = '<option value="all">All Dates</option>'
+      + dateKeys.map((key) => `<option value="${key}">${formatDateLabel(key)}</option>`).join('');
+    select.value = dateKeys.includes(previousValue) ? previousValue : 'all';
+    select.dataset.dates = signature;
+  }
   dateFilter = select.value;
 }
 
@@ -233,4 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderAll();
+
+  // Reports update live while monitoring runs in the background — see
+  // js/monitoring-engine.js.
+  MonitoringEngine.onDetections(renderAll);
 });

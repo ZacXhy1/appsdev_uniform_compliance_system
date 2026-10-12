@@ -7,24 +7,17 @@
    is denied, or the API is unavailable, it falls back to a simulated
    placeholder view. Either way, this is purely visual.
 
-   Detection: there is no real AI model reading the camera. Detections
-   are entirely fake — generateDetection() below rolls a random outcome
-   on a timer, regardless of whether a real or simulated feed is showing.
-   That's the function to change if the fake detection behavior (odds,
-   timing, confidence range) needs adjusting.
+   Detection: there is no real AI model reading the camera, and it no longer
+   runs on this page. The timer and the fake detection generator live in
+   js/monitoring-engine.js, which is loaded on EVERY page so monitoring keeps
+   going while you browse elsewhere. This page just starts/stops the engine,
+   attaches the (purely visual) camera, and re-renders whenever the engine
+   announces new detections. generateDetection() in the engine is the
+   function to change if the fake odds, timing or confidence need adjusting.
    ========================================================================== */
 
-const MONITORING_INTERVAL_MS = 4000;
 const MAX_RECENT_DISPLAY = 5;
-const MONITORING_ACTIVE_KEY = 'ucms_monitoring_active';
 
-// Session-persisted history (see getSessionDetections() in
-// js/data/mock-data.js) — survives navigating to other pages within the
-// same tab, so Detections/Dashboard/etc. see what Monitoring generates.
-let allDetections = getSessionDetections();
-let detectionCounter = allDetections.length;
-let monitoringTimer = null;
-let isMonitoring = false;
 let cameraStream = null;
 
 /**
@@ -87,38 +80,6 @@ function updateFeedClock() {
   });
 }
 
-/**
- * Fakes a single camera detection. Not real computer vision — just picks
- * a random outcome with roughly realistic odds and a matching confidence
- * range, and labels the "student" generically since there is no real
- * identification (see js/data/mock-data.js scope notes).
- */
-function generateDetection() {
-  detectionCounter += 1;
-
-  const roll = Math.random();
-  let status;
-  if (roll < 0.6) {
-    status = 'compliant';
-  } else if (roll < 0.9) {
-    status = 'violation';
-  } else {
-    status = 'pending';
-  }
-
-  const confidence = status === 'pending'
-    ? 0.40 + Math.random() * 0.20   // low confidence -> flagged for review
-    : 0.85 + Math.random() * 0.14;  // confident read either way
-
-  return {
-    id: `DTC-${Date.now()}`,
-    label: `Student ${detectionCounter}`,
-    timestamp: new Date().toISOString(),
-    status,
-    confidence: Math.round(confidence * 100) / 100,
-  };
-}
-
 function renderResultCard(detection) {
   const mount = document.getElementById('monitoring-result-content');
   if (!mount) return;
@@ -144,12 +105,13 @@ function renderRecentDetections() {
   const body = document.getElementById('monitoring-recent-body');
   if (!body) return;
 
+  const allDetections = getSessionDetections();
   if (allDetections.length === 0) {
     body.innerHTML = `<tr><td colspan="5">No detections yet.</td></tr>`;
     return;
   }
 
-  // Newest first, capped to MAX_RECENT_DISPLAY — allDetections itself keeps
+  // Newest first, capped to MAX_RECENT_DISPLAY — the session log itself keeps
   // growing so today's stats stay accurate even once older rows scroll off.
   const recent = [...allDetections].reverse().slice(0, MAX_RECENT_DISPLAY);
 
@@ -171,13 +133,14 @@ function renderRecentDetections() {
  *  computed from the full session history via getMockSummaryStats()
  *  (see js/data/mock-data.js). */
 function renderTodayStats() {
-  const stats = getMockSummaryStats(allDetections);
+  const stats = getMockSummaryStats(getSessionDetections());
   document.getElementById('today-total-value').textContent = stats.total;
   document.getElementById('today-compliant-value').textContent = stats.compliant;
   document.getElementById('today-violation-value').textContent = stats.violations;
 }
 
 function updateStatusIndicator() {
+  const isMonitoring = MonitoringEngine.isActive();
   const dot = document.getElementById('monitoring-status-dot');
   const text = document.getElementById('monitoring-status-text');
   const toggleBtn = document.getElementById('monitoring-toggle');
@@ -206,29 +169,25 @@ function updateStatusIndicator() {
   }
 }
 
-function tick() {
-  const detection = generateDetection();
-  allDetections = addSessionDetection(detection); // persists across page loads
-  renderResultCard(detection);
+/** Re-renders everything that depends on the detection log. Called when the
+ *  engine adds detections (whether this page or a previous one started it). */
+function renderLatest(detections) {
+  const latest = detections && detections.length
+    ? detections[detections.length - 1]
+    : getSessionDetections().slice(-1)[0];
+  if (latest) renderResultCard(latest);
   renderRecentDetections();
   renderTodayStats();
 }
 
 function startMonitoring() {
-  if (isMonitoring) return;
-  isMonitoring = true;
-  sessionStorage.setItem(MONITORING_ACTIVE_KEY, 'true');
+  MonitoringEngine.start();   // flips the shared flag, fires the first detection now
   updateStatusIndicator();
-  tryAttachRealCamera(); // best-effort; falls back to simulated view on failure
-  tick(); // fire one immediately so it doesn't feel idle for 4s
-  monitoringTimer = setInterval(tick, MONITORING_INTERVAL_MS);
+  tryAttachRealCamera();      // best-effort; falls back to simulated view on failure
 }
 
 function stopMonitoring() {
-  isMonitoring = false;
-  sessionStorage.setItem(MONITORING_ACTIVE_KEY, 'false');
-  clearInterval(monitoringTimer);
-  monitoringTimer = null;
+  MonitoringEngine.stop();
   stopRealCamera();
   updateStatusIndicator();
 }
@@ -236,36 +195,34 @@ function stopMonitoring() {
 document.addEventListener('DOMContentLoaded', () => {
   initShell('monitoring', 'Live Monitoring');
 
-  renderRecentDetections();
-  renderTodayStats();
-  if (allDetections.length > 0) {
-    renderResultCard(allDetections[allDetections.length - 1]);
-  }
+  renderLatest();
+  updateStatusIndicator();
 
   // Clock runs regardless of monitoring state — it's just the current time.
   updateFeedClock();
   setInterval(updateFeedClock, 1000);
 
   document.getElementById('monitoring-toggle').addEventListener('click', () => {
-    if (isMonitoring) {
+    if (MonitoringEngine.isActive()) {
       stopMonitoring();
     } else {
       startMonitoring();
     }
   });
 
+  // New detections from the engine (every ~4s while monitoring is on).
+  MonitoringEngine.onDetections(({ detections }) => renderLatest(detections));
+
   // Release the camera if the user navigates away/closes the tab while
   // monitoring is running, rather than leaving the light on.
   window.addEventListener('beforeunload', stopRealCamera);
 
-  // If monitoring was left running when the user navigated to another
-  // page, resume it automatically on return — feels continuous, even
-  // though a real page load can't literally keep the old interval alive.
-  // Note: this does NOT "catch up" on ticks missed while away, and if a
-  // real camera was attached before, the browser will just ask for
-  // permission again (expected — a fresh page can't hold onto the old
-  // camera stream).
-  if (sessionStorage.getItem(MONITORING_ACTIVE_KEY) === 'true') {
-    startMonitoring();
+  // Monitoring was left running (e.g. started here, then you browsed other
+  // pages, which kept detecting in the background) — the engine has already
+  // resumed on its own, so all that's left for this page is the camera. A
+  // fresh page can't hold the old stream, so the browser may ask for camera
+  // permission again (expected).
+  if (MonitoringEngine.isActive()) {
+    tryAttachRealCamera();
   }
 });

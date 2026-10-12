@@ -7,13 +7,11 @@
    this session shows up here too — see PROJECT_BRIEF.md Section 6/28.
    ========================================================================== */
 
-const DASHBOARD_MAX_RECENT = 5;
-// Written by js/pages/monitoring.js — reading it here is how Dashboard
-// reflects whether Live Monitoring is currently running, without the two
-// pages needing to talk to each other directly.
-const MONITORING_ACTIVE_KEY = 'ucms_monitoring_active';
+// Rows rendered into Recent Activity. On desktop the card is sized to the screen
+// and CSS shows only as many of these as fit (see css/pages/dashboard.css).
+const DASHBOARD_MAX_RECENT = 8;
 
-/** Renders the four top summary cards via the shared renderStatCard()
+/** Renders the four KPI cards (stacked in a column beside the hero video) via the shared renderStatCard()
  *  (js/components/stat-card.js), using its optional color tone so
  *  compliant/violation values stand out at a glance. */
 function renderSummaryCards(stats) {
@@ -33,7 +31,7 @@ function renderSummaryCards(stats) {
 function renderMonitoringStatus() {
   const dot = document.getElementById('dashboard-monitoring-dot');
   const text = document.getElementById('dashboard-monitoring-text');
-  const isActive = sessionStorage.getItem(MONITORING_ACTIVE_KEY) === 'true';
+  const isActive = MonitoringEngine.isActive();
 
   dot.classList.toggle('is-live', isActive);
   text.textContent = isActive
@@ -113,9 +111,56 @@ function renderRecentActivity(allDetections) {
   }).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initShell('dashboard', 'Dashboard');
+/**
+ * Decorative hologram video in the hero row. It should always be running while
+ * the dashboard is on screen, with no way for the user to stop or scrub it:
+ *   - the <video> has no `controls`, ignores pointer events, and the card's
+ *     right-click menu (which offers Pause / Show controls) is suppressed;
+ *   - if anything pauses it anyway (media keys, the browser, etc.) it resumes;
+ *   - it's restarted when the tab becomes visible again, and, if the browser
+ *     blocked autoplay (e.g. battery saver), on the first interaction.
+ * The only time it stops is when the browser itself suspends a hidden tab.
+ */
+function initHeroVideo() {
+  const video = document.getElementById('dashboard-hero-video');
+  const frame = document.getElementById('dashboard-hero-frame');
+  if (!video) return;
 
+  // Set via property too: the attribute alone isn't honoured everywhere, and
+  // autoplay is only allowed for muted video.
+  video.muted = true;
+  video.controls = false;
+
+  const play = () => {
+    const attempt = video.play();
+    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+  };
+
+  video.addEventListener('pause', () => {
+    if (!document.hidden) play();
+  });
+  video.addEventListener('ratechange', () => {
+    if (video.playbackRate !== 1) video.playbackRate = 1;
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) play();
+  });
+
+  if (frame) frame.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  const kickstart = () => {
+    play();
+    ['pointerdown', 'keydown', 'touchstart'].forEach((evt) =>
+      document.removeEventListener(evt, kickstart));
+  };
+  ['pointerdown', 'keydown', 'touchstart'].forEach((evt) =>
+    document.addEventListener(evt, kickstart, { passive: true }));
+
+  play();
+}
+
+/** Re-reads the shared detection log and redraws every live section. */
+function refreshDashboard() {
   const allDetections = getSessionDetections();
   const stats = getMockSummaryStats(allDetections);
 
@@ -123,4 +168,17 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSummaryCards(stats);
   renderComplianceChart(stats);
   renderRecentActivity(allDetections);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initShell('dashboard', 'Dashboard');
+  initHeroVideo();
+
+  refreshDashboard();
+
+  // Monitoring keeps running while you're on this page (see
+  // js/monitoring-engine.js): refresh the numbers as detections arrive, and
+  // the status banner if it's started/stopped from somewhere else.
+  MonitoringEngine.onDetections(refreshDashboard);
+  MonitoringEngine.onStateChange(renderMonitoringStatus);
 });
