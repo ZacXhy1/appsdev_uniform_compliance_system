@@ -16,7 +16,18 @@
    function to change if the fake odds, timing or confidence need adjusting.
    ========================================================================== */
 
-const MAX_RECENT_DISPLAY = 5;
+// Rows rendered into Recent Detections. On large screens CSS shows only as many
+// as fit the column's height (see css/pages/monitoring.css); stacked layouts
+// show the first 5.
+const MAX_RECENT_DISPLAY = 8;
+
+// How long a full-screen detection popup stays up (ms). Violations linger longer.
+const POPUP_DURATION_MS = 5000;
+const POPUP_DURATION_VIOLATION_MS = 8000;
+const MAX_VISIBLE_POPUPS = 3;
+
+// Full screen: hide the control bar + cursor after this much mouse inactivity.
+const FULLSCREEN_IDLE_MS = 3000;
 
 let cameraStream = null;
 
@@ -102,12 +113,12 @@ function renderResultCard(detection) {
 }
 
 function renderRecentDetections() {
-  const body = document.getElementById('monitoring-recent-body');
-  if (!body) return;
+  const list = document.getElementById('monitoring-recent-list');
+  if (!list) return;
 
   const allDetections = getSessionDetections();
   if (allDetections.length === 0) {
-    body.innerHTML = `<tr><td colspan="5">No detections yet.</td></tr>`;
+    list.innerHTML = `<li class="monitoring-recent-empty">No detections yet.</li>`;
     return;
   }
 
@@ -115,16 +126,22 @@ function renderRecentDetections() {
   // growing so today's stats stay accurate even once older rows scroll off.
   const recent = [...allDetections].reverse().slice(0, MAX_RECENT_DISPLAY);
 
-  body.innerHTML = recent.map((d) => {
+  // Two lines per row so every detail (name, status, time, confidence, ID) fits
+  // in the narrow side column.
+  list.innerHTML = recent.map((d) => {
     const meta = getStatusPillMeta(d.status);
     return `
-      <tr>
-        <td>${d.id}</td>
-        <td>${d.label}</td>
-        <td>${formatTimestamp(d.timestamp)}</td>
-        <td><span class="status-pill ${meta.className}">${meta.label}</span></td>
-        <td>${Math.round(d.confidence * 100)}%</td>
-      </tr>
+      <li class="monitoring-recent-item">
+        <div class="monitoring-recent-main">
+          <span class="monitoring-recent-name">${d.label}</span>
+          <span class="status-pill ${meta.className}">${meta.label}</span>
+        </div>
+        <div class="monitoring-recent-sub">
+          <span>${formatTimestamp(d.timestamp)}</span>
+          <span>${Math.round(d.confidence * 100)}%</span>
+          <span class="monitoring-recent-id" title="${d.id}">${d.id}</span>
+        </div>
+      </li>
     `;
   }).join('');
 }
@@ -143,7 +160,7 @@ function updateStatusIndicator() {
   const isMonitoring = MonitoringEngine.isActive();
   const dot = document.getElementById('monitoring-status-dot');
   const text = document.getElementById('monitoring-status-text');
-  const toggleBtn = document.getElementById('monitoring-toggle');
+  const toggleBtns = document.querySelectorAll('.js-monitoring-toggle');
   const feedDot = document.getElementById('monitoring-feed-dot');
   const feedText = document.getElementById('monitoring-feed-status-text');
   const todayStatus = document.getElementById('today-status-value');
@@ -151,7 +168,7 @@ function updateStatusIndicator() {
   if (isMonitoring) {
     dot.classList.add('is-live');
     text.textContent = 'Live — watching Main Gate';
-    toggleBtn.textContent = 'Stop Monitoring';
+    toggleBtns.forEach((btn) => { btn.textContent = 'Stop Monitoring'; });
 
     feedDot.classList.add('is-live');
     feedText.textContent = 'LIVE';
@@ -160,7 +177,7 @@ function updateStatusIndicator() {
   } else {
     dot.classList.remove('is-live');
     text.textContent = 'Idle';
-    toggleBtn.textContent = 'Start Monitoring';
+    toggleBtns.forEach((btn) => { btn.textContent = 'Start Monitoring'; });
 
     feedDot.classList.remove('is-live');
     feedText.textContent = 'IDLE';
@@ -180,6 +197,185 @@ function renderLatest(detections) {
   renderTodayStats();
 }
 
+/* ==========================================================================
+   Full screen + detection popups
+   The element that goes full screen is the feed itself (#monitoring-feed), so
+   the status chips, the control bar and the popups — all children of it — stay
+   visible. Browsers without the Fullscreen API (e.g. iPhone Safari) get a
+   "fake" full screen: the feed is pinned over the whole window with CSS.
+   ========================================================================== */
+
+function getFeedEl() {
+  return document.getElementById('monitoring-feed');
+}
+
+function getNativeFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+
+function isFeedFullscreen() {
+  const feed = getFeedEl();
+  return Boolean(feed) && (getNativeFullscreenElement() === feed
+    || feed.classList.contains('is-pseudo-fullscreen'));
+}
+
+function enterFeedFullscreen() {
+  const feed = getFeedEl();
+  if (!feed || isFeedFullscreen()) return;
+
+  const request = feed.requestFullscreen || feed.webkitRequestFullscreen;
+  if (!request || document.fullscreenEnabled === false) {
+    enterPseudoFullscreen();
+    return;
+  }
+  try {
+    const result = request.call(feed);
+    // Promise-based browsers reject if full screen is blocked (e.g. inside an
+    // iframe) — fall back instead of doing nothing.
+    if (result && typeof result.catch === 'function') {
+      result.catch(() => enterPseudoFullscreen());
+    }
+  } catch (err) {
+    enterPseudoFullscreen();
+  }
+}
+
+function exitFeedFullscreen() {
+  const feed = getFeedEl();
+  if (!feed) return;
+
+  if (feed.classList.contains('is-pseudo-fullscreen')) {
+    feed.classList.remove('is-pseudo-fullscreen');
+    document.body.classList.remove('monitoring-pseudo-fs');
+    syncFullscreenState();
+  } else if (getNativeFullscreenElement()) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+}
+
+function toggleFeedFullscreen() {
+  if (isFeedFullscreen()) {
+    exitFeedFullscreen();
+  } else {
+    enterFeedFullscreen();
+  }
+}
+
+function enterPseudoFullscreen() {
+  const feed = getFeedEl();
+  if (!feed) return;
+  feed.classList.add('is-pseudo-fullscreen');
+  document.body.classList.add('monitoring-pseudo-fs');
+  syncFullscreenState();
+}
+
+let fullscreenIdleTimer = null;
+
+/** Full screen only: fade out the control bar + cursor after a few idle seconds. */
+function wakeFullscreenControls() {
+  const feed = getFeedEl();
+  if (!feed) return;
+  feed.classList.remove('is-idle');
+  clearTimeout(fullscreenIdleTimer);
+  if (isFeedFullscreen()) {
+    fullscreenIdleTimer = setTimeout(() => feed.classList.add('is-idle'), FULLSCREEN_IDLE_MS);
+  }
+}
+
+/** Keeps the UI in step with the real state — also called when the user leaves
+ *  full screen with Esc, which the page never sees as a click. */
+function syncFullscreenState() {
+  const feed = getFeedEl();
+  if (!feed) return;
+
+  const active = isFeedFullscreen();
+  feed.classList.toggle('is-fullscreen', active);
+
+  document.querySelectorAll('.js-fullscreen-toggle').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(active));
+  });
+  const corner = document.querySelector('.monitoring-fs-corner');
+  if (corner) {
+    corner.setAttribute('aria-label', active ? 'Exit full screen' : 'Enter full screen');
+  }
+
+  if (active) {
+    wakeFullscreenControls();
+  } else {
+    clearTimeout(fullscreenIdleTimer);
+    feed.classList.remove('is-idle');
+    clearDetectionPopups(); // nothing should linger once the feed is back in the page
+  }
+}
+
+/** Removes a popup with a short fade-out. */
+function dismissPopup(popup) {
+  if (!popup || popup.classList.contains('is-leaving')) return;
+  popup.classList.add('is-leaving');
+  setTimeout(() => popup.remove(), 230);
+}
+
+function clearDetectionPopups() {
+  const mount = document.getElementById('monitoring-popups');
+  if (mount) mount.innerHTML = '';
+}
+
+/**
+ * Pops a detection card over the feed. Only runs in full screen (in the normal
+ * view the side panels already show every result). The thumbnail goes through
+ * renderEvidenceFrame() like everywhere else, so real snapshots will show up
+ * here automatically once they exist.
+ */
+function showDetectionPopup(detection) {
+  const mount = document.getElementById('monitoring-popups');
+  if (!mount || !isFeedFullscreen()) return;
+
+  const meta = getStatusPillMeta(detection.status);
+  const messages = {
+    compliant: 'In uniform',
+    violation: 'Not in uniform',
+    pending: 'Needs manual review',
+  };
+  const message = messages[detection.status] || 'Detected';
+  const time = new Date(detection.timestamp).toLocaleTimeString('en-US', {
+    hour: 'numeric', minute: '2-digit', second: '2-digit',
+  });
+
+  const popup = document.createElement('div');
+  popup.className = `monitoring-popup monitoring-popup--${detection.status}`;
+  popup.setAttribute('role', 'status');
+  popup.title = 'Click to dismiss';
+  popup.innerHTML = `
+    <div class="monitoring-popup-thumb">${renderEvidenceFrame(detection)}</div>
+    <div class="monitoring-popup-body">
+      <div class="monitoring-popup-top">
+        <strong>${detection.label}</strong>
+        <span class="status-pill ${meta.className}">${meta.label}</span>
+      </div>
+      <div class="monitoring-popup-msg">${message} \u00B7 ${CAMERA_LOCATION}</div>
+      <div class="monitoring-popup-meta">${time} \u00B7 ${Math.round(detection.confidence * 100)}% confidence</div>
+    </div>
+  `;
+  popup.addEventListener('click', () => dismissPopup(popup));
+
+  // Newest on top; keep the stack short so it never covers the camera.
+  mount.prepend(popup);
+  const popups = mount.querySelectorAll('.monitoring-popup:not(.is-leaving)');
+  for (let i = MAX_VISIBLE_POPUPS; i < popups.length; i += 1) {
+    popups[i].remove();
+  }
+
+  const lifetime = detection.status === 'violation'
+    ? POPUP_DURATION_VIOLATION_MS
+    : POPUP_DURATION_MS;
+  setTimeout(() => dismissPopup(popup), lifetime);
+}
+
+function isTypingTarget(el) {
+  return el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+}
+
 function startMonitoring() {
   MonitoringEngine.start();   // flips the shared flag, fires the first detection now
   updateStatusIndicator();
@@ -189,6 +385,7 @@ function startMonitoring() {
 function stopMonitoring() {
   MonitoringEngine.stop();
   stopRealCamera();
+  clearDetectionPopups();
   updateStatusIndicator();
 }
 
@@ -202,16 +399,53 @@ document.addEventListener('DOMContentLoaded', () => {
   updateFeedClock();
   setInterval(updateFeedClock, 1000);
 
-  document.getElementById('monitoring-toggle').addEventListener('click', () => {
-    if (MonitoringEngine.isActive()) {
-      stopMonitoring();
-    } else {
-      startMonitoring();
+  // There are two Start/Stop buttons (below the feed, and in the full-screen
+  // control bar) — both do the same thing.
+  document.querySelectorAll('.js-monitoring-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (MonitoringEngine.isActive()) {
+        stopMonitoring();
+      } else {
+        startMonitoring();
+      }
+    });
+  });
+
+  // Full screen: buttons, double-click on the feed, and the F key.
+  document.querySelectorAll('.js-fullscreen-toggle').forEach((btn) => {
+    btn.addEventListener('click', toggleFeedFullscreen);
+  });
+
+  const feed = getFeedEl();
+  feed.addEventListener('dblclick', toggleFeedFullscreen);
+  ['mousemove', 'pointerdown', 'touchstart'].forEach((evt) => {
+    feed.addEventListener(evt, wakeFullscreenControls, { passive: true });
+  });
+
+  document.addEventListener('fullscreenchange', syncFullscreenState);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenState);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey || event.metaKey || event.altKey || isTypingTarget(event.target)) return;
+    if (event.key === 'f' || event.key === 'F') {
+      event.preventDefault();
+      toggleFeedFullscreen();
+    } else if (event.key === 'Escape' && feed.classList.contains('is-pseudo-fullscreen')) {
+      exitFeedFullscreen(); // real full screen handles Esc by itself
+    } else if (isFeedFullscreen()) {
+      wakeFullscreenControls();
     }
   });
 
-  // New detections from the engine (every ~4s while monitoring is on).
-  MonitoringEngine.onDetections(({ detections }) => renderLatest(detections));
+  // New detections from the engine (every ~4s while monitoring is on). In full
+  // screen each one also pops up over the feed. After a catch-up burst (a
+  // throttled tab waking up) only the newest few are worth showing.
+  MonitoringEngine.onDetections(({ detections }) => {
+    renderLatest(detections);
+    if (isFeedFullscreen() && MonitoringEngine.isActive()) {
+      detections.slice(-MAX_VISIBLE_POPUPS).forEach(showDetectionPopup);
+    }
+  });
 
   // Release the camera if the user navigates away/closes the tab while
   // monitoring is running, rather than leaving the light on.

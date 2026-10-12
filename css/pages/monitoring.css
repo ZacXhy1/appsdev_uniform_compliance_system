@@ -15,6 +15,13 @@
   grid-column: 1 / -1;
 }
 
+/* Wrapper around today/latest/recent. In the stacked layout it dissolves so
+   those cards sit in .monitoring-layout's grid exactly as before; the fit
+   layout below turns it into a real column beside the camera. */
+.monitoring-side {
+  display: contents;
+}
+
 /* --- Today's stats row --- */
 .monitoring-today-card {
   display: flex;
@@ -52,7 +59,7 @@
 /* --- Simulated camera feed --- */
 .monitoring-feed {
   position: relative;
-  aspect-ratio: 2.5 / 1;
+  aspect-ratio: 16 / 9; /* fallback for the stacked (scrolling) layout; the fit layout below fills its space instead */
   border-radius: var(--radius-md);
   background: linear-gradient(160deg, var(--color-dark) 0%, var(--color-dark-hover) 100%);
   overflow: hidden;
@@ -174,6 +181,12 @@
   gap: var(--space-3);
 }
 
+.monitoring-controls-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .monitoring-status {
   display: flex;
   align-items: center;
@@ -237,5 +250,436 @@
 
   .monitoring-today-card {
     flex-direction: column;
+  }
+}
+
+
+/* --- Recent detections list (replaces the old table so it fits a narrow column) --- */
+.monitoring-recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.monitoring-recent-item {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+.monitoring-recent-item:last-child {
+  border-bottom: none;
+}
+
+/* Stacked layout shows 5, like the old table did. The fit layout shows as many
+   (up to 8) as the available height allows — see the container queries below. */
+.monitoring-recent-item:nth-child(n + 6) {
+  display: none;
+}
+
+.monitoring-recent-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.monitoring-recent-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.monitoring-recent-sub {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.monitoring-recent-sub > span {
+  flex: none;
+}
+
+.monitoring-recent-sub > .monitoring-recent-id {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.monitoring-recent-empty {
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* --- Full screen controls --- */
+
+/* Corner expand button on the feed (page view). */
+.monitoring-fs-corner {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(31, 41, 55, 0.55);
+  backdrop-filter: blur(2px);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+}
+
+.monitoring-fs-corner:hover,
+.monitoring-fs-corner:focus-visible {
+  opacity: 1;
+  background: rgba(31, 41, 55, 0.8);
+}
+
+/* Control bar: only exists visually in full screen. */
+.monitoring-fs-bar {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  z-index: 5;
+  transform: translateX(-50%);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+
+.monitoring-feed.is-fullscreen .monitoring-fs-bar {
+  display: flex;
+}
+
+.monitoring-feed.is-fullscreen .monitoring-fs-corner {
+  display: none;
+}
+
+/* Mouse idle in full screen: hide the bar and the cursor, like a video player. */
+.monitoring-feed.is-fullscreen.is-idle {
+  cursor: none;
+}
+
+.monitoring-feed.is-fullscreen.is-idle .monitoring-fs-bar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(8px);
+}
+
+/* The real fullscreen element (and the fallback for browsers without the API).
+   Selectors start with :root so they beat the themed .monitoring-feed rules in
+   global.css (which add a border/shadow/radius meant for the card view). */
+:root .monitoring-feed.is-fullscreen,
+:root .monitoring-feed.is-pseudo-fullscreen {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+:root .monitoring-feed.is-pseudo-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+}
+
+body.monitoring-pseudo-fs {
+  overflow: hidden;
+}
+
+/* Bigger overlay chips when the feed fills the screen. */
+.monitoring-feed.is-fullscreen .monitoring-feed-topleft,
+.monitoring-feed.is-fullscreen .monitoring-feed-topright {
+  top: var(--space-4);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+}
+
+.monitoring-feed.is-fullscreen .monitoring-feed-topleft { left: var(--space-5); }
+.monitoring-feed.is-fullscreen .monitoring-feed-topright { right: var(--space-5); }
+
+/* --- Detection popups (full screen only) --- */
+.monitoring-popups {
+  display: none;
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-5);
+  z-index: 4;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(380px, calc(100% - var(--space-5) * 2));
+  pointer-events: none; /* only the popups themselves catch clicks */
+}
+
+/* Below the top-left LIVE chip. */
+.monitoring-feed.is-fullscreen .monitoring-popups {
+  display: flex;
+  top: calc(var(--space-4) + 48px);
+}
+
+.monitoring-popup {
+  --popup-accent: var(--color-success);
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
+  border-radius: var(--radius-md);
+  border-left: 5px solid var(--popup-accent);
+  background: rgba(17, 24, 39, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-text-inverse);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  animation: monitoring-popup-in 260ms ease-out both;
+}
+
+.monitoring-popup--violation { --popup-accent: var(--color-danger); }
+.monitoring-popup--pending   { --popup-accent: var(--color-warning); }
+
+.monitoring-popup.is-leaving {
+  animation: monitoring-popup-out 220ms ease-in both;
+}
+
+.monitoring-popup-thumb {
+  width: 76px;
+  flex-shrink: 0;
+}
+
+.monitoring-popup-thumb .evidence-frame {
+  border-radius: var(--radius-sm);
+}
+
+.monitoring-popup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.monitoring-popup-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.monitoring-popup-top strong {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.monitoring-popup-msg {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--popup-accent);
+}
+
+.monitoring-popup-meta {
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes monitoring-popup-in {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes monitoring-popup-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-24px); }
+}
+
+/* Large screens in full screen: scale the popups up a little. */
+@media (min-width: 1600px) {
+  .monitoring-feed.is-fullscreen .monitoring-popups { width: 440px; }
+  .monitoring-feed.is-fullscreen .monitoring-popup-thumb { width: 92px; }
+  .monitoring-feed.is-fullscreen .monitoring-popup-top strong { font-size: var(--text-xl); }
+}
+
+/* ==========================================================================
+   FIT-TO-SCREEN layout (large desktop windows)
+   The camera takes the left side at full height; today's stats, the latest
+   detection and recent detections stack in a column on the right. Nothing
+   needs scrolling. Smaller / narrower windows fall back to the stacked,
+   scrolling layout above.
+   ========================================================================== */
+@media (min-width: 1100px) and (min-height: 560px) {
+  .monitoring-fit {
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--space-5);
+  }
+
+  .monitoring-fit .monitoring-layout {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(310px, 25vw, 440px);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+
+  /* --- Left: camera --- */
+  .monitoring-fit .monitoring-feed-card {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: var(--space-3);
+  }
+
+  .monitoring-fit .monitoring-feed {
+    flex: 1;
+    min-height: 0;
+    aspect-ratio: auto;
+    margin-bottom: var(--space-3);
+  }
+
+  .monitoring-fit .monitoring-controls {
+    flex-shrink: 0;
+    padding: 0 var(--space-1);
+  }
+
+  /* --- Right: everything else --- */
+  .monitoring-fit .monitoring-side {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 0;
+  }
+
+  .monitoring-fit .monitoring-side > .card {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .monitoring-fit .monitoring-side h2 {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  /* Today's stats: 2 x 2 */
+  .monitoring-fit .monitoring-today-card {
+    flex: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-4);
+  }
+
+  .monitoring-fit .monitoring-today-stat {
+    min-width: 0;
+    gap: 0;
+  }
+
+  .monitoring-fit .monitoring-today-value {
+    font-size: var(--text-xl);
+    line-height: 1.15;
+  }
+
+  .monitoring-fit .monitoring-today-label {
+    font-size: var(--text-xs);
+  }
+
+  /* Latest detection: small photo on the left, details on the right */
+  .monitoring-fit .monitoring-result-card {
+    flex: none;
+  }
+
+  .monitoring-fit #monitoring-result-content {
+    min-height: 84px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .monitoring-fit .monitoring-result {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+  }
+
+  .monitoring-fit .monitoring-result .evidence-frame {
+    grid-row: 1 / span 2;
+  }
+
+  .monitoring-fit .monitoring-result-meta {
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+  }
+
+  .monitoring-fit .placeholder-block {
+    padding: var(--space-3);
+    font-size: var(--text-xs);
+  }
+
+  .monitoring-fit .placeholder-block { margin: 0; }
+
+  /* Recent detections: takes whatever height is left */
+  .monitoring-fit .monitoring-recent-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .monitoring-fit .monitoring-recent-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden; /* fallback: clip instead of scroll */
+  }
+}
+
+/* Show only as many recent rows as fit (each row is ~56px). Same technique
+   as the Dashboard's recent-activity card. */
+@supports (container-type: size) {
+  @media (min-width: 1100px) and (min-height: 560px) {
+    .monitoring-fit .monitoring-recent-wrap {
+      container-type: size;
+    }
+
+    .monitoring-fit .monitoring-recent-item:nth-child(n + 6) {
+      display: block;
+    }
+
+    @container (max-height: 447px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 8) { display: none; } }
+    @container (max-height: 391px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 7) { display: none; } }
+    @container (max-height: 335px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 6) { display: none; } }
+    @container (max-height: 279px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 5) { display: none; } }
+    @container (max-height: 223px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 4) { display: none; } }
+    @container (max-height: 167px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 3) { display: none; } }
+    @container (max-height: 111px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 2) { display: none; } }
   }
 }
