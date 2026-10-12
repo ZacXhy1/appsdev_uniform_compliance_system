@@ -10,12 +10,16 @@
   <script src="../js/auth.js"></script>
   <script src="../js/settings.js"></script>
   <script>requireAuth();</script>
+  <script src="../js/boot.js"></script>
+  <script src="../js/components/sidebar.js"></script>
+  <script src="../js/components/header.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <div id="sidebar"></div>
     <div class="app-main">
       <div id="header"></div>
+      <script>renderSidebar('detections'); renderHeader('Detections');</script>
       <main class="app-content">
 
         <div class="review-banner" id="review-banner" hidden>
@@ -70,8 +74,6 @@
   </div>
 
   <script src="../js/data/mock-data.js"></script>
-  <script src="../js/components/sidebar.js"></script>
-  <script src="../js/components/header.js"></script>
   <script src="../js/components/stat-card.js"></script>
   <script src="../js/components/modal.js"></script>
   <script src="../js/components/pagination.js"></script>

@@ -11,6 +11,15 @@
    and stays in place while long pages scroll. */
 #sidebar {
   flex-shrink: 0;
+  /* Reserve the sidebar's width even before it is drawn, so the page never
+     jumps sideways when the sidebar appears. */
+  width: var(--sidebar-width);
+}
+
+/* Same idea for the header: hold its height open. */
+#header {
+  min-height: var(--header-height);
+  flex-shrink: 0;
 }
 
 .sidebar {
@@ -596,6 +605,7 @@
 }
 
 @media (max-width: 768px) {
+  #sidebar,
   .sidebar { width: 72px; }
   .sidebar-brand-text,
   .sidebar-link-text { display: none; }

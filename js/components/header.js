@@ -10,6 +10,24 @@ function renderHeader(pageTitle) {
   const mount = document.getElementById('header');
   if (!mount) return;
 
+  // Rendered early by an inline script on each page; initShell() calls this
+  // again once everything has loaded. Only (re)build the markup the first
+  // time, then just make sure the live-monitoring hooks are wired up.
+  if (mount.dataset.title !== pageTitle) {
+    drawHeader(mount, pageTitle);
+  }
+
+  updateHeaderLive();
+  // MonitoringEngine loads after this file's first call, so subscribe lazily
+  // (once) on whichever call finds it available.
+  if (typeof MonitoringEngine !== 'undefined' && !mount.dataset.liveWired) {
+    mount.dataset.liveWired = 'true';
+    MonitoringEngine.onStateChange(updateHeaderLive);
+  }
+}
+
+function drawHeader(mount, pageTitle) {
+  mount.dataset.title = pageTitle;
   mount.innerHTML = `
     <header class="header">
       <h1 class="header-title">${pageTitle}</h1>
@@ -30,13 +48,6 @@ function renderHeader(pageTitle) {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', logout);
   }
-
-  updateHeaderLive();
-  // Keep the pill in sync if monitoring is started/stopped while this page is
-  // open (MonitoringEngine is loaded after this file, so look it up lazily).
-  if (typeof MonitoringEngine !== 'undefined') {
-    MonitoringEngine.onStateChange(updateHeaderLive);
-  }
 }
 
 /** Shows the "Monitoring live" pill on every page while Live Monitoring is
@@ -44,7 +55,13 @@ function renderHeader(pageTitle) {
  *  already shows its own LIVE status. */
 function updateHeaderLive() {
   const pill = document.getElementById('header-live');
-  if (!pill || typeof MonitoringEngine === 'undefined') return;
+  if (!pill) return;
+  // The header is drawn before monitoring-engine.js has loaded, so fall back to
+  // reading the same sessionStorage flag the engine uses. That way the pill is
+  // already correct on first paint instead of popping in later.
+  const isActive = typeof MonitoringEngine !== 'undefined'
+    ? MonitoringEngine.isActive()
+    : sessionStorage.getItem('ucms_monitoring_active') === 'true';
   const onMonitoringPage = /monitoring\.html$/.test(window.location.pathname);
-  pill.hidden = !MonitoringEngine.isActive() || onMonitoringPage;
+  pill.hidden = !isActive || onMonitoringPage;
 }

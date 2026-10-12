@@ -19,6 +19,11 @@ function renderSidebar(activeKey) {
   const mount = document.getElementById('sidebar');
   if (!mount) return;
 
+  // Pages render the sidebar early (inline, right after the mount point) so it
+  // is there on the very first paint. initShell() calls this again later —
+  // skip the redraw so nothing blinks or restarts its animation.
+  if (mount.dataset.rendered === activeKey) return;
+
   const links = SIDEBAR_LINKS.map((link) => {
     const activeClass = link.key === activeKey ? ' is-active' : '';
     return `
@@ -41,4 +46,5 @@ function renderSidebar(activeKey) {
       <div class="sidebar-footer">Demo build &middot; no real data</div>
     </aside>
   `;
+  mount.dataset.rendered = activeKey;
 }
