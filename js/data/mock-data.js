@@ -76,6 +76,20 @@ const MOCK_DETECTIONS = [
     status: 'violation',
     confidence: 0.93,
   },
+  {
+    id: 'DTC-1007',
+    label: 'Student 7',
+    timestamp: '2026-08-18T13:18:00',
+    status: 'compliant',
+    confidence: 0.96,
+  },
+  {
+    id: 'DTC-1008',
+    label: 'Student 8',
+    timestamp: '2026-08-18T13:40:00',
+    status: 'violation',
+    confidence: 0.89,
+  },
 ];
 
 // Aggregate stats — Dashboard/Reports should compute these FROM

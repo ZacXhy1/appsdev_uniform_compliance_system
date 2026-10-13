@@ -108,6 +108,37 @@ function renderComplianceChart(stats) {
   `;
 }
 
+/** Vertical bar chart of compliant / violation / pending counts for the
+ *  current date filter — plain CSS, same palette as the donut. */
+function renderStatusBarChart(stats) {
+  const chart = document.getElementById('reports-bar-chart');
+  const subtitle = document.getElementById('reports-bar-subtitle');
+  if (!chart) return;
+
+  subtitle.textContent = dateFilter === 'all'
+    ? 'Across the entire session'
+    : `For ${formatDateLabel(dateFilter)}`;
+
+  const bars = [
+    { label: 'Compliant', value: stats.compliant, tone: 'success' },
+    { label: 'Violation', value: stats.violations, tone: 'danger' },
+    { label: 'Pending Review', value: stats.pending, tone: 'warning' },
+  ];
+  const max = Math.max(...bars.map((b) => b.value), 1);
+
+  chart.setAttribute('aria-label', 'Bar chart of detections by status: '
+    + bars.map((b) => `${b.label} ${b.value}`).join(', '));
+  chart.innerHTML = bars.map((b) => `
+    <div class="reports-bar-col">
+      <span class="reports-bar-value">${b.value}</span>
+      <div class="reports-bar-track">
+        <div class="reports-bar reports-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
+      </div>
+      <span class="reports-bar-label">${b.label}</span>
+    </div>
+  `).join('');
+}
+
 /** Plain-language narrative summary + a couple of quick insights, computed
  *  from real data rather than hardcoded — the one piece Reports has that
  *  Dashboard/Violations don't. */
@@ -219,6 +250,7 @@ function renderAll() {
 
   renderStats(stats);
   renderComplianceChart(stats);
+  renderStatusBarChart(stats);
   renderSummaryReport(stats);
   renderTrendByDate();
 }
@@ -233,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stats = getMockSummaryStats(filtered);
     renderStats(stats);
     renderComplianceChart(stats);
+    renderStatusBarChart(stats);
     renderSummaryReport(stats);
     // Trend section intentionally not re-rendered here — it always shows
     // the full session regardless of this filter.

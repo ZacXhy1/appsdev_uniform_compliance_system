@@ -32,6 +32,8 @@
 .monitoring-today-stat {
   display: flex;
   flex-direction: column;
+  align-items: center;   /* value centred over its label */
+  text-align: center;
   gap: var(--space-1);
   flex: 1;
   min-width: 120px;
@@ -217,16 +219,46 @@
 }
 
 /* --- Latest detection result --- */
+
+/* Centre the placeholder silhouette in the snapshot frame. The shared frame
+   pins the figure to the bottom edge (like a bust photo); here it should sit in
+   the middle. The figure only fills the lower part of the SVG's 200x150 box
+   (head top at y=28, shoulders end at y=150), so besides centring the box we nudge
+   it up by 14/150 (= 9.33% of its own height) to centre the figure itself. */
+.monitoring-result .evidence-frame {
+  align-items: center;
+  justify-content: center;
+}
+
+.monitoring-result .evidence-frame svg {
+  flex: none;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 200 / 150;
+  transform: translateY(-9.33%);
+}
+
 .monitoring-result {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
+.monitoring-result-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
 .monitoring-result-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
@@ -238,7 +270,10 @@
 
 .monitoring-result-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  text-align: center;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
@@ -261,19 +296,17 @@
 }
 
 .monitoring-recent-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* when rows are stretched, keep their text centred */
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-border);
   min-width: 0;
 }
 
-.monitoring-recent-item:last-child {
-  border-bottom: none;
-}
-
-/* Stacked layout shows 5, like the old table did. The fit layout shows as many
-   (up to 8) as the available height allows — see the container queries below. */
-.monitoring-recent-item:nth-child(n + 6) {
-  display: none;
+/* Dividers go BETWEEN rows (not under each), so the last visible row ends
+   cleanly at the bottom of the card. */
+.monitoring-recent-item + .monitoring-recent-item {
+  border-top: 1px solid var(--color-border);
 }
 
 .monitoring-recent-main {
@@ -616,7 +649,7 @@ body.monitoring-pseudo-fs {
   }
 
   .monitoring-fit #monitoring-result-content {
-    min-height: 84px;
+    min-height: 118px; /* sized for the larger snapshot, so nothing jumps when the first detection arrives */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -624,19 +657,28 @@ body.monitoring-pseudo-fs {
 
   .monitoring-fit .monitoring-result {
     display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: clamp(110px, 40%, 156px) minmax(0, 1fr);
     align-items: center;
-    column-gap: var(--space-3);
-    row-gap: var(--space-1);
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
   }
 
-  .monitoring-fit .monitoring-result .evidence-frame {
-    grid-row: 1 / span 2;
-  }
-
-  .monitoring-fit .monitoring-result-meta {
+  .monitoring-fit .monitoring-result-row {
     flex-wrap: wrap;
-    gap: 0 var(--space-3);
+    justify-content: center;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .monitoring-fit .monitoring-result-details {
+    gap: var(--space-1);
+  }
+
+  /* Time above confidence, so the details stay tidy beside the bigger photo. */
+  .monitoring-fit .monitoring-result-meta {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
   }
 
   .monitoring-fit .placeholder-block {
@@ -660,10 +702,33 @@ body.monitoring-pseudo-fs {
     min-height: 0;
     overflow: hidden; /* fallback: clip instead of scroll */
   }
+
+  /* The visible rows share out any leftover height, so the last one sits at
+     the bottom of the card instead of leaving a gap. max-height only stops an
+     extremely short list from turning into giant rows. */
+  .monitoring-fit .monitoring-recent-list {
+    height: 100%;
+  }
+
+  .monitoring-fit .monitoring-recent-item {
+    flex: 1 1 auto;
+    max-height: 130px;
+  }
 }
 
-/* Show only as many recent rows as fit (each row is ~56px). Same technique
-   as the Dashboard's recent-activity card. */
+/* Shorter screens: a slightly smaller snapshot keeps room for the list. */
+@media (min-width: 1100px) and (min-height: 560px) and (max-height: 720px) {
+  .monitoring-fit .monitoring-result {
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+
+  .monitoring-fit #monitoring-result-content {
+    min-height: 82px;
+  }
+}
+
+/* Show only as many recent rows as fit (each row is ~56px, up to the 14 the
+   script renders). Same technique as the Dashboard's recent-activity card. */
 @supports (container-type: size) {
   @media (min-width: 1100px) and (min-height: 560px) {
     .monitoring-fit .monitoring-recent-wrap {
@@ -671,9 +736,15 @@ body.monitoring-pseudo-fs {
     }
 
     .monitoring-fit .monitoring-recent-item:nth-child(n + 6) {
-      display: block;
+      display: flex;
     }
 
+    @container (max-height: 783px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 14) { display: none; } }
+    @container (max-height: 727px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 13) { display: none; } }
+    @container (max-height: 671px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 12) { display: none; } }
+    @container (max-height: 615px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 11) { display: none; } }
+    @container (max-height: 559px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 10) { display: none; } }
+    @container (max-height: 503px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 9) { display: none; } }
     @container (max-height: 447px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 8) { display: none; } }
     @container (max-height: 391px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 7) { display: none; } }
     @container (max-height: 335px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 6) { display: none; } }
@@ -681,5 +752,101 @@ body.monitoring-pseudo-fs {
     @container (max-height: 223px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 4) { display: none; } }
     @container (max-height: 167px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 3) { display: none; } }
     @container (max-height: 111px) { .monitoring-fit .monitoring-recent-item:nth-child(n + 2) { display: none; } }
+  }
+}
+
+
+/* ==========================================================================
+   TALL / NORMAL SCREENS (viewport at least 820px high)
+   Recent Detections is exactly its 8 rows — no stretching, no dead space — and
+   sits at the bottom of the column. Everything left over goes to Latest
+   Detection, whose snapshot grows to fill it. (Shorter screens keep the
+   compact behaviour above, where the list shows as many rows as fit.)
+   ========================================================================== */
+@media (min-width: 1100px) and (min-height: 820px) {
+  .monitoring-fit {
+    /* Row padding eases from 4px (820px tall) up to 8px (940px+ tall). */
+    --recent-row-pad: clamp(4px, calc(4px + (100vh - 820px) / 30), 8px);
+  }
+
+  /* Recent Detections: natural height = title + 8 rows */
+  .monitoring-fit .monitoring-recent-card {
+    flex: 0 0 auto;
+  }
+
+  .monitoring-fit .monitoring-recent-wrap {
+    flex: none;
+    overflow: visible;
+    container-type: normal; /* cancels the size container used by the compact tier */
+  }
+
+  .monitoring-fit .monitoring-recent-list {
+    height: auto;
+  }
+
+  .monitoring-fit .monitoring-recent-item {
+    display: flex;
+    flex: none;
+    max-height: none;
+    padding: var(--recent-row-pad) 0;
+  }
+
+  /* Latest Detection: takes all the remaining height */
+  .monitoring-fit .monitoring-result-card {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .monitoring-fit #monitoring-result-content {
+    flex: 1;
+    min-height: 0;
+    justify-content: stretch;
+  }
+
+  /* Big snapshot on the left (fills the full height), details on the right */
+  .monitoring-fit .monitoring-result {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 54%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    column-gap: var(--space-4);
+  }
+
+  .monitoring-fit .monitoring-result .evidence-frame {
+    aspect-ratio: auto;
+    height: auto;
+    min-height: 0;
+    border-radius: var(--radius-md);
+  }
+
+  .monitoring-fit .monitoring-result-details {
+    justify-content: center;
+    gap: var(--space-3);
+  }
+
+  .monitoring-fit .monitoring-result-row {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .monitoring-fit .monitoring-result-label {
+    font-size: var(--text-xl);
+  }
+
+  .monitoring-fit .monitoring-result-meta {
+    font-size: var(--text-sm);
+    gap: var(--space-1);
+  }
+
+  .monitoring-fit .placeholder-block {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 }

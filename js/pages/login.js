@@ -12,6 +12,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordInput = document.getElementById('password');
   const errorBox = document.getElementById('loginError');
 
+  const passwordToggle = document.getElementById('passwordToggle');
+  const eyeOpen = document.getElementById('eyeOpen');
+  const eyeOff = document.getElementById('eyeOff');
+
+  // Start with the open eye visible, crossed-out eye hidden
+  eyeOpen.style.display = 'block';
+  eyeOff.style.display = 'none';
+
+  // Only show the eye icon once something has been typed
+  passwordInput.addEventListener('input', () => {
+    const hasText = passwordInput.value.length > 0;
+    passwordToggle.classList.toggle('is-visible', hasText);
+
+    // If the field is emptied, reset back to hidden-password state
+    if (!hasText) {
+      passwordInput.type = 'password';
+      eyeOpen.style.display = 'block';
+      eyeOff.style.display = 'none';
+      passwordToggle.setAttribute('aria-label', 'Show password');
+    }
+  });
+
+  // Show / hide password
+  passwordToggle.addEventListener('click', () => {
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+    eyeOpen.style.display = isHidden ? 'none' : 'block';
+    eyeOff.style.display = isHidden ? 'block' : 'none';
+    passwordToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  });
+
+  // Login submit
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 

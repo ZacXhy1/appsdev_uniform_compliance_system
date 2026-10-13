@@ -85,6 +85,32 @@ function renderComplianceChart(stats) {
   `;
 }
 
+/** Vertical bar chart (compliant / violation / pending counts), plain CSS
+ *  like the donut — no charting library. */
+function renderStatusBarChart(stats) {
+  const chart = document.getElementById('dashboard-bar-chart');
+  if (!chart) return;
+
+  const bars = [
+    { label: 'Compliant', value: stats.compliant, tone: 'success' },
+    { label: 'Violation', value: stats.violations, tone: 'danger' },
+    { label: 'Pending', value: stats.pending, tone: 'warning' },
+  ];
+  const max = Math.max(...bars.map((b) => b.value), 1);
+
+  chart.setAttribute('aria-label', 'Bar chart of detections by status: '
+    + bars.map((b) => `${b.label} ${b.value}`).join(', '));
+  chart.innerHTML = bars.map((b) => `
+    <div class="bar-chart-col">
+      <span class="bar-chart-value">${b.value}</span>
+      <div class="bar-chart-track">
+        <div class="bar-chart-bar bar-chart-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
+      </div>
+      <span class="bar-chart-label">${b.label}</span>
+    </div>
+  `).join('');
+}
+
 /** Latest detections, newest first, capped to DASHBOARD_MAX_RECENT — same
  *  pattern as Monitoring's "Recent Detections" table. */
 function renderRecentActivity(allDetections) {
@@ -167,6 +193,7 @@ function refreshDashboard() {
   renderMonitoringStatus();
   renderSummaryCards(stats);
   renderComplianceChart(stats);
+  renderStatusBarChart(stats);
   renderRecentActivity(allDetections);
 }
 

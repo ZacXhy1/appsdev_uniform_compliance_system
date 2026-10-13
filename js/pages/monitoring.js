@@ -16,9 +16,9 @@
    function to change if the fake odds, timing or confidence need adjusting.
    ========================================================================== */
 
-// Rows rendered into Recent Detections. On large screens CSS shows only as many
-// as fit the column's height (see css/pages/monitoring.css); stacked layouts
-// show the first 5.
+// Recent Detections always shows the newest 8, newest first. Once 8 are listed,
+// each new detection pushes the oldest one off the bottom. (The full session log
+// keeps growing, so every stat and the Detections page still count them all.)
 const MAX_RECENT_DISPLAY = 8;
 
 // How long a full-screen detection popup stays up (ms). Violations linger longer.
@@ -100,13 +100,15 @@ function renderResultCard(detection) {
   mount.innerHTML = `
     <div class="monitoring-result">
       ${renderEvidenceFrame(detection)}
-      <div class="monitoring-result-row">
-        <span class="monitoring-result-label">${detection.label}</span>
-        <span class="status-pill ${meta.className}">${meta.label}</span>
-      </div>
-      <div class="monitoring-result-meta">
-        <span>${formatTimestamp(detection.timestamp)}</span>
-        <span>${Math.round(detection.confidence * 100)}% confidence</span>
+      <div class="monitoring-result-details">
+        <div class="monitoring-result-row">
+          <span class="monitoring-result-label">${detection.label}</span>
+          <span class="status-pill ${meta.className}">${meta.label}</span>
+        </div>
+        <div class="monitoring-result-meta">
+          <span>${formatTimestamp(detection.timestamp)}</span>
+          <span>${Math.round(detection.confidence * 100)}% confidence</span>
+        </div>
       </div>
     </div>
   `;
