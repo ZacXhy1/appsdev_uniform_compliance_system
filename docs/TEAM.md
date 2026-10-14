@@ -16,10 +16,15 @@ once.
 
 - `index.html`
 - `js/app.js`
+- `js/auth.js`
+- `js/boot.js`
+- `js/settings.js`
+- `js/monitoring-engine.js`
 - `js/data/mock-data.js`
 - `css/global.css`
 - `css/components.css`
 - `js/components/`
+- `.github/workflows/static.yml` (pushing to `main` redeploys GitHub Pages)
 
 ## Ground rules
 

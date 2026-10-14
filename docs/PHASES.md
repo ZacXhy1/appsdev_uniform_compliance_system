@@ -9,9 +9,9 @@ should be stable and testable before moving to the next.
 |---|---|---|
 | 0 | Prep | Done |
 | 1 | Login | Done |
-| 2 | Dashboard | Done |
+| 2 | Dashboard | Done (includes bar chart and hologram video) |
 | 3 | Live Monitoring | Done |
-| 4 | Detections | Done (plus manual review, snapshots, pagination) |
+| 4 | Detections | Done (plus manual review, correction, snapshots, pagination, fixed-size table) |
 | 5 | Violations | Done |
 | 6 | Reports | Done |
 | 7 | Settings | Done |
@@ -50,8 +50,11 @@ should be stable and testable before moving to the next.
 - Summary/stat cards driven by mock data.
 - Recent activity feed.
 
-**Status: done.** Summary cards, compliance chart, recent activity, and Live
-Monitoring status, all read from `getSessionDetections()`.
+**Status: done.** Fits one screen on desktop without scrolling (smaller
+windows scroll normally). Includes Live Monitoring status, a looping hologram
+video with four KPI cards, a compliance donut, a detections-by-status bar chart
+(plain CSS), and Recent Activity. Everything reads from
+`getSessionDetections()`.
 
 ## Phase 3 — Live Monitoring
 
@@ -66,8 +69,13 @@ Monitoring status, all read from `getSessionDetections()`.
 **Status: done.** Optional real webcam (visual only) with a simulated
 fallback, CCTV-style status/clock overlay, detections generated every few
 seconds (~60% compliant / 30% violation / 10% pending), a Latest Detection
-card with a snapshot frame, and a Recent Detections table. Detections and the
-on/off state persist across page navigation.
+card with a snapshot frame, and a Recent Detections table.
+
+Monitoring now keeps running on every protected page through
+`js/monitoring-engine.js`: the on/off state and next-due time live in
+`sessionStorage`, a "Monitoring live" pill shows in the header, other pages
+re-render as detections arrive, and new violations raise an alert when
+Settings → Detection Alerts is on. See `docs/ARCHITECTURE.md`.
 
 ## Phase 4 — Detections
 
@@ -87,9 +95,17 @@ on/off state persist across page navigation.
   awaiting review; the details modal lets personnel confirm a pending
   detection as compliant or a violation (marked `reviewed: true`). Dashboard,
   Violations, and Reports update automatically.
+- **Correction of confident results** — the details modal (also on Violations)
+  lets personnel switch a compliant or violation result to the other one after
+  a confirmation. The record is marked `reviewed: true`.
 - **Snapshot frame** — every detection's modal shows an evidence snapshot
   (empty-avatar placeholder for now) so reviewers aren't judging from text
   and numbers alone.
+- **Layout fixes** — the "Time" column is now "Date & Time"; the Date & Time,
+  Status, and Confidence columns are centered; the table uses a fixed layout
+  and fixed row heights (with blank filler rows on short pages) so it does not
+  resize between pages; and rows scale with the window height so the table and
+  pagination fit the base view without a scrollbar.
 
 ## Phase 5 — Violations
 
@@ -140,16 +156,20 @@ preferences and for detection data.
 - Cross-page consistency.
 
 **Status: in progress.** Already in place: empty states on Detections and
-Violations, toast confirmations, confirm-before-reset dialogs, pagination,
-and a responsive sidebar that collapses to icons on small screens.
+Violations, toast confirmations, confirm-before-reset dialogs, pagination on
+Detections, a responsive sidebar that collapses to icons on small screens,
+`js/boot.js` to stop content flicker between pages, and `js/settings.js`
+loaded in `<head>` on every protected page so the saved theme and compact view
+apply everywhere.
 
 Still to check:
 
-- Add Pagination to Violations if its list grows long.
-- Confirm every page loads `js/settings.js` in `<head>`, so the saved theme
-  and compact view apply on all pages (some pages may be missing it).
+- Add pagination to Violations if its list grows long.
+- The login page does not load `js/settings.js`, so it always uses the default
+  theme. Decide whether that is acceptable.
 - Loading states where appropriate, and a full accessibility pass.
-- Test layouts at tablet and mobile widths on every page.
+- Test layouts at tablet and mobile widths on every page, including the
+  Detections table (its row height is tuned for desktop windows).
 
 ## Phase 9 — Final testing & feature freeze
 
