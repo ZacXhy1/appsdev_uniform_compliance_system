@@ -65,7 +65,6 @@ function renderTable() {
   renderPagination(document.getElementById('detections-pagination'), currentPage, totalPages, (page) => {
     currentPage = page;
     renderTable();
-    tableWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   body.innerHTML = pageRows.map((d) => {
@@ -74,10 +73,10 @@ function renderTable() {
       <tr>
         <td>${d.id}</td>
         <td>${d.label}</td>
-        <td>${formatTimestamp(d.timestamp)}</td>
-        <td><span class="status-pill ${meta.className}">${meta.label}</span></td>
-        <td>${Math.round(d.confidence * 100)}%</td>
-        <td>
+        <td class="col-center">${formatTimestamp(d.timestamp)}</td>
+        <td class="col-center"><span class="status-pill ${meta.className}">${meta.label}</span></td>
+        <td class="col-center">${Math.round(d.confidence * 100)}%</td>
+        <td class="col-center">
           <button type="button" class="btn ${d.status === 'pending' ? 'btn-primary' : 'btn-secondary'} btn-sm" onclick="showDetectionDetails('${d.id}')">
             ${d.status === 'pending' ? 'Review' : 'View'}
           </button>
@@ -85,6 +84,12 @@ function renderTable() {
       </tr>
     `;
   }).join('');
+
+  // Pad short pages (last page / filtered results) with blank rows so the
+  // table always keeps the same height while paging.
+  const fillerCount = DETECTIONS_PER_PAGE - pageRows.length;
+  body.insertAdjacentHTML('beforeend',
+    '<tr class="row-filler" aria-hidden="true"><td colspan="6"></td></tr>'.repeat(fillerCount));
 }
 
 function showDetectionDetails(id) {

@@ -49,15 +49,23 @@
         <p class="detections-count" id="detections-count"></p>
 
         <div class="card" id="detections-table-wrap">
-          <table class="data-table">
+          <table class="data-table detections-table">
+            <colgroup>
+              <col style="width: 22%" />
+              <col style="width: 15%" />
+              <col style="width: 23%" />
+              <col style="width: 16%" />
+              <col style="width: 12%" />
+              <col style="width: 12%" />
+            </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Detected</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Confidence</th>
-                <th></th>
+                <th class="col-center">Date &amp; Time</th>
+                <th class="col-center">Status</th>
+                <th class="col-center">Confidence</th>
+                <th class="col-center"></th>
               </tr>
             </thead>
             <tbody id="detections-table-body"></tbody>
