@@ -17,6 +17,9 @@
 
   function reveal() {
     root.classList.remove('is-booting');
+    // Starts the page entrance animation (css/components.css) at the moment the
+    // content becomes visible, so it is never played while still hidden.
+    root.classList.add('page-ready');
   }
 
   // All DOMContentLoaded handlers (including each page's renderer) run in one

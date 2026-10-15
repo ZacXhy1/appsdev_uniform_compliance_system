@@ -54,13 +54,12 @@ function populateDateFilterOptions() {
 /** Top summary cards — Total, Compliant, Violations, Compliance Rate —
  *  scoped to the current date filter. */
 function renderStats(stats) {
-  const cards = [
-    renderStatCard(stats.total, 'Total Detections'),
-    renderStatCard(stats.compliant, 'Compliant', 'success'),
-    renderStatCard(stats.violations, 'Violations', 'danger'),
-    renderStatCard(`${stats.complianceRate}%`, 'Compliance Rate', 'primary'),
-  ];
-  document.getElementById('reports-stats').innerHTML = cards.join('');
+  renderKpiCards(document.getElementById('reports-stats'), [
+    { value: stats.total, label: 'Total Detections' },
+    { value: stats.compliant, label: 'Compliant', tone: 'success' },
+    { value: stats.violations, label: 'Violations', tone: 'danger' },
+    { value: stats.complianceRate, suffix: '%', label: 'Compliance Rate', tone: 'primary' },
+  ]);
 }
 
 /** Compliant / violation / pending donut for the current date filter —
@@ -75,19 +74,8 @@ function renderComplianceChart(stats) {
     ? 'Across the entire session'
     : `For ${formatDateLabel(dateFilter)}`;
 
-  if (stats.total === 0) {
-    donut.style.background = 'var(--color-border)';
-  } else {
-    const compliantPct = (stats.compliant / stats.total) * 100;
-    const violationPct = (stats.violations / stats.total) * 100;
-    donut.style.background = `conic-gradient(
-      var(--color-success) 0% ${compliantPct}%,
-      var(--color-danger) ${compliantPct}% ${compliantPct + violationPct}%,
-      var(--color-warning) ${compliantPct + violationPct}% 100%
-    )`;
-  }
-
-  centerLabel.textContent = `${stats.complianceRate}%`;
+  setDonut(donut, stats);
+  animateNumber(centerLabel, stats.complianceRate, { suffix: '%' });
 
   legend.innerHTML = `
     <div class="reports-legend-row">
@@ -124,19 +112,13 @@ function renderStatusBarChart(stats) {
     { label: 'Violation', value: stats.violations, tone: 'danger' },
     { label: 'Pending Review', value: stats.pending, tone: 'warning' },
   ];
-  const max = Math.max(...bars.map((b) => b.value), 1);
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
     + bars.map((b) => `${b.label} ${b.value}`).join(', '));
-  chart.innerHTML = bars.map((b) => `
-    <div class="reports-bar-col">
-      <span class="reports-bar-value">${b.value}</span>
-      <div class="reports-bar-track">
-        <div class="reports-bar reports-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
-      </div>
-      <span class="reports-bar-label">${b.label}</span>
-    </div>
-  `).join('');
+  renderAnimatedBars(chart, bars, {
+    col: 'reports-bar-col', value: 'reports-bar-value', track: 'reports-bar-track',
+    bar: 'reports-bar', label: 'reports-bar-label',
+  });
 }
 
 /** Plain-language narrative summary + a couple of quick insights, computed

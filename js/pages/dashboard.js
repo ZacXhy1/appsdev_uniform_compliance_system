@@ -18,12 +18,12 @@ function renderSummaryCards(stats) {
   const mount = document.getElementById('dashboard-summary-cards');
   if (!mount) return;
 
-  mount.innerHTML = [
-    renderStatCard(stats.total, 'Total Detections'),
-    renderStatCard(stats.compliant, 'Compliant', 'success'),
-    renderStatCard(stats.violations, 'Violations', 'danger'),
-    renderStatCard(`${stats.complianceRate}%`, 'Compliance Rate', 'primary'),
-  ].join('');
+  renderKpiCards(mount, [
+    { value: stats.total, label: 'Total Detections' },
+    { value: stats.compliant, label: 'Compliant', tone: 'success' },
+    { value: stats.violations, label: 'Violations', tone: 'danger' },
+    { value: stats.complianceRate, suffix: '%', label: 'Compliance Rate', tone: 'primary' },
+  ]);
 }
 
 /** Reflects whether Live Monitoring is currently active, per
@@ -50,21 +50,8 @@ function renderComplianceChart(stats) {
   const centerLabel = document.getElementById('dashboard-donut-center');
   if (!donut) return;
 
-  if (stats.total === 0) {
-    donut.style.background = 'var(--color-border)';
-  } else {
-    const compliantPct = (stats.compliant / stats.total) * 100;
-    const violationPct = (stats.violations / stats.total) * 100;
-    // Pending fills whatever's left, so the three slices always sum to a
-    // full circle even with rounding.
-    donut.style.background = `conic-gradient(
-      var(--color-success) 0% ${compliantPct}%,
-      var(--color-danger) ${compliantPct}% ${compliantPct + violationPct}%,
-      var(--color-warning) ${compliantPct + violationPct}% 100%
-    )`;
-  }
-
-  centerLabel.textContent = `${stats.complianceRate}%`;
+  setDonut(donut, stats);
+  animateNumber(centerLabel, stats.complianceRate, { suffix: '%' });
 
   legend.innerHTML = `
     <div class="dashboard-legend-row">
@@ -96,19 +83,13 @@ function renderStatusBarChart(stats) {
     { label: 'Violation', value: stats.violations, tone: 'danger' },
     { label: 'Pending', value: stats.pending, tone: 'warning' },
   ];
-  const max = Math.max(...bars.map((b) => b.value), 1);
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
     + bars.map((b) => `${b.label} ${b.value}`).join(', '));
-  chart.innerHTML = bars.map((b) => `
-    <div class="bar-chart-col">
-      <span class="bar-chart-value">${b.value}</span>
-      <div class="bar-chart-track">
-        <div class="bar-chart-bar bar-chart-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
-      </div>
-      <span class="bar-chart-label">${b.label}</span>
-    </div>
-  `).join('');
+  renderAnimatedBars(chart, bars, {
+    col: 'bar-chart-col', value: 'bar-chart-value', track: 'bar-chart-track',
+    bar: 'bar-chart-bar', label: 'bar-chart-label',
+  });
 }
 
 /** Latest detections, newest first, capped to DASHBOARD_MAX_RECENT — same

@@ -325,6 +325,83 @@
   color: var(--color-text-muted);
 }
 
+/* --- Motion --------------------------------------------------------------- */
+
+/* Page entrance: the page's top-level sections rise and fade in one after
+   another each time a page loads. boot.js adds `page-ready` when it reveals
+   the content. `backwards` (not `both`) so nothing keeps a transform
+   afterwards. The sidebar and header stay still so navigation feels instant. */
+@keyframes page-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+html.page-ready .app-content > * {
+  animation: page-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+html.page-ready .app-content > :nth-child(2) { animation-delay: 60ms; }
+html.page-ready .app-content > :nth-child(3) { animation-delay: 120ms; }
+html.page-ready .app-content > :nth-child(4) { animation-delay: 180ms; }
+html.page-ready .app-content > :nth-child(5) { animation-delay: 240ms; }
+html.page-ready .app-content > :nth-child(n + 6) { animation-delay: 300ms; }
+
+/* Modals (details, confirm): backdrop fades in, panel rises and settles. */
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-overlay:not([hidden]) {
+  animation: modal-fade 0.18s ease-out;
+}
+.modal-overlay:not([hidden]) .modal {
+  animation: modal-pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* KPI numbers pop briefly when a live update changes them
+   (animateNumber() in js/app.js adds .is-bumped). */
+.stat-card-value.is-bumped {
+  animation: kpi-bump 0.45s ease-out;
+}
+@keyframes kpi-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* Donut chart (Dashboard + Reports). The slices are registered custom
+   properties so the browser can animate them: the ring sweeps in on first draw
+   and re-slices smoothly on updates. Where @property is unsupported it simply
+   jumps to the final state. setDonut() in js/app.js sets the three variables. */
+@property --donut-compliant { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@property --donut-violation { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+@property --donut-pending   { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+.donut-animated {
+  background: conic-gradient(
+    var(--color-success) 0% var(--donut-compliant),
+    var(--color-danger) var(--donut-compliant) calc(var(--donut-compliant) + var(--donut-violation)),
+    var(--color-warning) calc(var(--donut-compliant) + var(--donut-violation))
+      calc(var(--donut-compliant) + var(--donut-violation) + var(--donut-pending)),
+    var(--color-border) calc(var(--donut-compliant) + var(--donut-violation) + var(--donut-pending)) 100%
+  );
+  transition:
+    --donut-compliant 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --donut-violation 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+    --donut-pending 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.page-ready .app-content > *,
+  .modal-overlay:not([hidden]),
+  .modal-overlay:not([hidden]) .modal,
+  .stat-card-value.is-bumped {
+    animation: none;
+  }
+  .btn:active:not(:disabled) { transform: none; }
+}
+
 /* --- Placeholder block (used by Phase 0 stub pages) --- */
 .placeholder-block {
   border: 1px dashed var(--color-border);
@@ -443,8 +520,11 @@
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast), opacity var(--transition-fast);
+  transition: background var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
+
+/* Tactile press feedback */
+.btn:active:not(:disabled) { transform: scale(0.97); }
 
 .btn-primary {
   background: var(--color-primary);
