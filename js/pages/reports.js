@@ -112,7 +112,6 @@ function renderStatusBarChart(stats) {
     { label: 'Violation', value: stats.violations, tone: 'danger' },
     { label: 'Pending Review', value: stats.pending, tone: 'warning' },
   ];
-<<<<<<< HEAD
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
     + bars.map((b) => `${b.label} ${b.value}`).join(', '));
@@ -120,7 +119,6 @@ function renderStatusBarChart(stats) {
     col: 'reports-bar-col', value: 'reports-bar-value', track: 'reports-bar-track',
     bar: 'reports-bar', label: 'reports-bar-label',
   });
-=======
   const max = Math.max(...bars.map((b) => b.value), 1);
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
@@ -134,7 +132,6 @@ function renderStatusBarChart(stats) {
       <span class="reports-bar-label">${b.label}</span>
     </div>
   `).join('');
->>>>>>> 8a92cf0 (feat: Added Bar Chart)
 }
 
 /** Plain-language narrative summary + a couple of quick insights, computed

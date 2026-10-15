@@ -83,7 +83,6 @@ function renderStatusBarChart(stats) {
     { label: 'Violation', value: stats.violations, tone: 'danger' },
     { label: 'Pending', value: stats.pending, tone: 'warning' },
   ];
-<<<<<<< HEAD
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
     + bars.map((b) => `${b.label} ${b.value}`).join(', '));
@@ -91,7 +90,6 @@ function renderStatusBarChart(stats) {
     col: 'bar-chart-col', value: 'bar-chart-value', track: 'bar-chart-track',
     bar: 'bar-chart-bar', label: 'bar-chart-label',
   });
-=======
   const max = Math.max(...bars.map((b) => b.value), 1);
 
   chart.setAttribute('aria-label', 'Bar chart of detections by status: '
@@ -105,7 +103,6 @@ function renderStatusBarChart(stats) {
       <span class="bar-chart-label">${b.label}</span>
     </div>
   `).join('');
->>>>>>> 8a92cf0 (feat: Added Bar Chart)
 }
 
 /** Latest detections, newest first, capped to DASHBOARD_MAX_RECENT — same
