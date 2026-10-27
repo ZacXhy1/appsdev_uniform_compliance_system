@@ -12,6 +12,8 @@
 let searchTerm = '';
 let dateFilter = 'all';
 let sortOrder = 'newest';
+let currentPage = 1;
+const VIOLATIONS_PER_PAGE = 15;
 
 /** All violation records in the current session (unfiltered). */
 function getViolations() {
@@ -108,6 +110,7 @@ function renderByDateSummary() {
   summaryCard.hidden = false;
 
   const maxCount = Math.max(...entries.map(([, count]) => count));
+  playOnce(container);
 
   container.innerHTML = entries.map(([dateKey, count]) => {
     const widthPct = Math.round((count / maxCount) * 100);
@@ -123,7 +126,11 @@ function renderByDateSummary() {
   }).join('');
 }
 
-function renderTable() {
+/**
+ * @param {{ enter?: boolean }} [opts] enter: fade the rows in (first load, page
+ *   change, filter change). Live refreshes leave it off so only new rows flash.
+ */
+function renderTable({ enter = false } = {}) {
   const allViolations = getViolations();
   const results = getFilteredSortedViolations();
   const body = document.getElementById('violations-table-body');
@@ -131,9 +138,8 @@ function renderTable() {
   const tableWrap = document.getElementById('violations-table-wrap');
   const emptyEl = document.getElementById('violations-empty');
 
-  countEl.textContent = `Showing ${results.length} of ${allViolations.length} violations`;
-
   if (results.length === 0) {
+    countEl.textContent = `Showing 0 of ${allViolations.length} violations`;
     tableWrap.hidden = true;
     emptyEl.hidden = false;
     return;
@@ -141,16 +147,31 @@ function renderTable() {
   tableWrap.hidden = false;
   emptyEl.hidden = true;
 
-  body.innerHTML = results.map((d) => {
+  // Slice out just this page's rows. Clamp the page in case the results
+  // shrank (a filter, or a correction moved a row off this page).
+  const totalPages = Math.ceil(results.length / VIOLATIONS_PER_PAGE);
+  currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (currentPage - 1) * VIOLATIONS_PER_PAGE;
+  const pageRows = results.slice(startIndex, startIndex + VIOLATIONS_PER_PAGE);
+
+  const totalNote = results.length === allViolations.length ? '' : ` (${allViolations.length} total)`;
+  countEl.textContent = `Showing ${startIndex + 1}\u2013${startIndex + pageRows.length} of ${results.length} violations${totalNote}`;
+
+  renderPagination(document.getElementById('violations-pagination'), currentPage, totalPages, (page) => {
+    currentPage = page;
+    renderTable({ enter: true });
+  });
+
+  body.innerHTML = pageRows.map((d) => {
     const meta = getStatusPillMeta(d.status);
     return `
-      <tr>
+      <tr data-id="${d.id}">
         <td>${d.id}</td>
         <td>${d.label}</td>
-        <td>${formatTimestamp(d.timestamp)}</td>
-        <td><span class="status-pill ${meta.className}">${meta.label}</span></td>
-        <td>${Math.round(d.confidence * 100)}%</td>
-        <td>
+        <td class="col-center">${formatTimestamp(d.timestamp)}</td>
+        <td class="col-center"><span class="status-pill ${meta.className}">${meta.label}</span></td>
+        <td class="col-center">${Math.round(d.confidence * 100)}%</td>
+        <td class="col-center">
           <button type="button" class="btn btn-secondary btn-sm" onclick="showViolationDetails('${d.id}')">
             View
           </button>
@@ -158,6 +179,16 @@ function renderTable() {
       </tr>
     `;
   }).join('');
+
+  animateTableRows(body, { enter, quiet: currentPage !== 1 });
+
+  // Pad short pages with blank rows so the table always lays out 15 row slots:
+  // rows keep one size and fill the empty space as violations come in.
+  // (Hidden by CSS outside the fit-to-screen layout, where the page scrolls.)
+  body.insertAdjacentHTML('beforeend',
+    // The invisible button gives each blank slot the same height as a real row.
+    '<tr class="row-filler" aria-hidden="true"><td colspan="6"><span class="btn btn-secondary btn-sm" style="visibility:hidden">View</span></td></tr>'
+      .repeat(VIOLATIONS_PER_PAGE - pageRows.length));
 }
 
 function renderAll() {
@@ -204,17 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('violations-search').addEventListener('input', (event) => {
     searchTerm = event.target.value.trim().toLowerCase();
-    renderTable();
+    currentPage = 1;
+    renderTable({ enter: true });
   });
 
   document.getElementById('violations-date-filter').addEventListener('change', (event) => {
     dateFilter = event.target.value;
-    renderTable();
+    currentPage = 1;
+    renderTable({ enter: true });
   });
 
   document.getElementById('violations-sort').addEventListener('change', (event) => {
     sortOrder = event.target.value;
-    renderTable();
+    currentPage = 1;
+    renderTable({ enter: true });
   });
 
   renderAll();

@@ -158,13 +158,12 @@ preferences and for detection data.
 **Status: in progress.** Already in place: empty states on Detections and
 Violations, toast confirmations, confirm-before-reset dialogs, pagination on
 Detections, a responsive sidebar that collapses to icons on small screens,
-`js/boot.js` to stop content flicker between pages, and `js/settings.js`
+pagination on Violations, table-row / bar / settings entrance animations, `js/boot.js` to stop content flicker between pages, and `js/settings.js`
 loaded in `<head>` on every protected page so the saved theme and compact view
 apply everywhere.
 
 Still to check:
 
-- Add pagination to Violations if its list grows long.
 - The login page does not load `js/settings.js`, so it always uses the default
   theme. Decide whether that is acceptable.
 - Loading states where appropriate, and a full accessibility pass.

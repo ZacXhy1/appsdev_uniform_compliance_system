@@ -90,19 +90,6 @@ function renderStatusBarChart(stats) {
     col: 'bar-chart-col', value: 'bar-chart-value', track: 'bar-chart-track',
     bar: 'bar-chart-bar', label: 'bar-chart-label',
   });
-  const max = Math.max(...bars.map((b) => b.value), 1);
-
-  chart.setAttribute('aria-label', 'Bar chart of detections by status: '
-    + bars.map((b) => `${b.label} ${b.value}`).join(', '));
-  chart.innerHTML = bars.map((b) => `
-    <div class="bar-chart-col">
-      <span class="bar-chart-value">${b.value}</span>
-      <div class="bar-chart-track">
-        <div class="bar-chart-bar bar-chart-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
-      </div>
-      <span class="bar-chart-label">${b.label}</span>
-    </div>
-  `).join('');
 }
 
 /** Latest detections, newest first, capped to DASHBOARD_MAX_RECENT — same
@@ -121,14 +108,17 @@ function renderRecentActivity(allDetections) {
   body.innerHTML = recent.map((d) => {
     const meta = getStatusPillMeta(d.status);
     return `
-      <tr>
+      <tr data-id="${d.id}">
         <td>${d.label}</td>
-        <td>${formatTimestamp(d.timestamp)}</td>
-        <td><span class="status-pill ${meta.className}">${meta.label}</span></td>
-        <td>${Math.round(d.confidence * 100)}%</td>
+        <td class="col-center">${formatTimestamp(d.timestamp)}</td>
+        <td class="col-center"><span class="status-pill ${meta.className}">${meta.label}</span></td>
+        <td class="col-center">${Math.round(d.confidence * 100)}%</td>
       </tr>
     `;
   }).join('');
+
+  // First draw fades the rows in; later live refreshes only flash the new one.
+  animateTableRows(body);
 }
 
 /**

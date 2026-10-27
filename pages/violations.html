@@ -20,7 +20,7 @@
     <div class="app-main">
       <div id="header"></div>
       <script>renderSidebar('violations'); renderHeader('Violations');</script>
-      <main class="app-content">
+      <main class="app-content violations-fit">
 
         <div class="stats-grid" id="violations-stats"></div>
 
@@ -43,19 +43,28 @@
         <p class="violations-count" id="violations-count"></p>
 
         <div class="card" id="violations-table-wrap">
-          <table class="data-table">
+          <table class="data-table violations-table">
+            <colgroup>
+              <col style="width: 19%" />
+              <col style="width: 14%" />
+              <col style="width: 25%" />
+              <col style="width: 15%" />
+              <col style="width: 15%" />
+              <col style="width: 12%" />
+            </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Detected</th>
-                <th>Date &amp; Time</th>
-                <th>Status</th>
-                <th>Confidence</th>
-                <th></th>
+                <th class="col-center">Date &amp; Time</th>
+                <th class="col-center">Status</th>
+                <th class="col-center">Confidence</th>
+                <th class="col-center"></th>
               </tr>
             </thead>
             <tbody id="violations-table-body"></tbody>
           </table>
+          <nav class="pagination" id="violations-pagination" aria-label="Violations pages" hidden></nav>
         </div>
 
         <div class="card placeholder-block" id="violations-empty" hidden>
@@ -78,6 +87,7 @@
   <script src="../js/data/mock-data.js"></script>
   <script src="../js/components/stat-card.js"></script>
   <script src="../js/components/modal.js"></script>
+  <script src="../js/components/pagination.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/monitoring-engine.js"></script>
   <script src="../js/pages/violations.js"></script>

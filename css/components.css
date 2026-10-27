@@ -392,14 +392,83 @@ html.page-ready .app-content > :nth-child(n + 6) { animation-delay: 300ms; }
     --donut-pending 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Table rows. animateTableRows() (js/app.js) sets these classes:
+   - rows-enter on a <tbody>: rows fade in one after another (first load,
+     page change, filter change). Removed again right after, so live
+     refreshes that rewrite the rows never replay it.
+   - row-new on a <tr>: a freshly detected row slides in and flashes. */
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes row-flash {
+  0%   { opacity: 0; transform: translateY(-8px); background: rgba(0, 117, 255, 0.18); }
+  40%  { opacity: 1; transform: translateY(0); }
+  100% { background: transparent; }
+}
+tbody.rows-enter > tr {
+  animation: row-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--row-i, 0) * 28ms);
+}
+tbody > tr.row-new {
+  animation: row-flash 1.2s ease-out;
+}
+
+/* Horizontal bars (Violations / Reports by-date) grow from the left the
+   first time they are drawn (playOnce() in js/app.js adds .bars-enter). */
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.bars-enter [class*='bar-fill'],
+.bars-enter [class*='bar-segment'] {
+  transform-origin: left center;
+  animation: bar-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.bars-enter > * { animation: row-in 0.4s ease-out backwards; }
+
+/* KPI tiles lift slightly on hover. */
+.stat-card {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Pagination: the page number you land on pops. */
+.pagination-btn.is-active {
+  animation: kpi-bump 0.3s ease-out;
+}
+
+/* Settings: the sections rise in one after another instead of as one block. */
+html.page-ready .app-content > .settings-list {
+  animation: none;
+}
+html.page-ready .settings-list > * {
+  animation: page-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+/* After the first second the form may be re-rendered (e.g. toggling alerts) without replaying this. */
+html.page-ready .settings-list[data-drawn] > * { animation: none; }
+html.page-ready .settings-list > :nth-child(2) { animation-delay: 60ms; }
+html.page-ready .settings-list > :nth-child(3) { animation-delay: 120ms; }
+html.page-ready .settings-list > :nth-child(4) { animation-delay: 180ms; }
+html.page-ready .settings-list > :nth-child(5) { animation-delay: 240ms; }
+html.page-ready .settings-list > :nth-child(n + 6) { animation-delay: 300ms; }
+
 @media (prefers-reduced-motion: reduce) {
   html.page-ready .app-content > *,
+  html.page-ready .settings-list > *,
+  tbody.rows-enter > tr,
+  tbody > tr.row-new,
+  .bars-enter,
+  .bars-enter *,
   .modal-overlay:not([hidden]),
   .modal-overlay:not([hidden]) .modal,
   .stat-card-value.is-bumped {
     animation: none;
   }
   .btn:active:not(:disabled) { transform: none; }
+  .stat-card:hover { transform: none; }
 }
 
 /* --- Placeholder block (used by Phase 0 stub pages) --- */
@@ -429,6 +498,16 @@ html.page-ready .app-content > :nth-child(n + 6) { animation-delay: 300ms; }
 .data-table td {
   padding: var(--space-3);
   border-bottom: 1px solid var(--color-border);
+}
+
+/* Centered column (header + cells). Used by Dashboard, Detections, Violations. */
+.data-table th.col-center,
+.data-table td.col-center {
+  text-align: center;
+}
+
+.data-table tbody tr {
+  transition: background var(--transition-fast);
 }
 
 /* --- Modal --- */

@@ -20,13 +20,23 @@
     <div class="app-main">
       <div id="header"></div>
       <script>renderSidebar('reports'); renderHeader('Reports');</script>
-      <main class="app-content">
+      <main class="app-content reports-fit">
+
+        <div class="print-only print-header">
+          <h1>Uniform Compliance Report</h1>
+          <p>Consolatrix College of Toledo City Inc. &middot; Main Gate</p>
+          <p>Date range: <span id="print-range"></span> &middot; Generated <span id="print-generated"></span></p>
+        </div>
 
         <div class="reports-toolbar">
           <label class="reports-filter-label" for="reports-date-filter">Date range</label>
           <select id="reports-date-filter" class="select">
             <option value="all">All Dates</option>
           </select>
+          <div class="reports-export">
+            <button type="button" class="btn btn-secondary" id="export-print-btn">Print / PDF</button>
+            <button type="button" class="btn btn-primary" id="export-csv-btn">Export CSV</button>
+          </div>
         </div>
 
         <div class="stats-grid" id="reports-stats"></div>
@@ -48,21 +58,21 @@
             <p id="reports-summary-text"></p>
             <ul class="reports-insights" id="reports-insights"></ul>
           </div>
-        </div>
 
-        <div class="card reports-bar-card">
-          <h2>Detections by Status</h2>
-          <p class="form-hint" id="reports-bar-subtitle"></p>
-          <div class="reports-bar-chart" id="reports-bar-chart" role="img" aria-label="Bar chart of detections by status"></div>
-        </div>
+          <div class="card reports-bar-card">
+            <h2>Detections by Status</h2>
+            <p class="form-hint" id="reports-bar-subtitle"></p>
+            <div class="reports-bar-chart" id="reports-bar-chart" role="img" aria-label="Bar chart of detections by status"></div>
+          </div>
 
-        <div class="card reports-trend-card">
-          <h2>Detections by Date</h2>
-          <p class="form-hint">
-            Every detection recorded at the <span id="reports-trend-camera-label"></span> checkpoint,
-            grouped by day — always shows the full session regardless of the date filter above.
-          </p>
-          <div id="reports-trend-list"></div>
+          <div class="card reports-trend-card">
+            <h2>Detections by Date</h2>
+            <p class="form-hint">
+              Every detection recorded at the <span id="reports-trend-camera-label"></span> checkpoint,
+              grouped by day — always shows the full session regardless of the date filter above.
+            </p>
+            <div id="reports-trend-list"></div>
+          </div>
         </div>
 
       </main>

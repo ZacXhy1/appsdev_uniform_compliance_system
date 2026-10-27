@@ -1,17 +1,6 @@
 /* ==========================================================================
    Settings — page logic
    Owner: Dean (Phase 7)
-   ========================================================================== */
-
-document.addEventListener('DOMContentLoaded', () => {
-  initShell('settings', 'Settings');
-
-  // TODO (Phase 7): build out Settings using MOCK_DETECTIONS from
-  // js/data/mock-data.js. See docs/PHASES.md for the deliverable.
-});
-/* ==========================================================================
-   Settings — page logic
-   Owner: Dean (Phase 7)
 
    Reads/writes preferences via js/settings.js (getSettings, saveSettings,
    resetSettings — loaded in <head> on every page so theme/density apply
@@ -23,7 +12,25 @@ function renderSettingsForm() {
   const settings = getSettings();
   const root = document.getElementById('settings-root');
 
+  const username = typeof DEMO_USERNAME === 'string' ? DEMO_USERNAME : 'admin';
+  const intervalOptions = (window.REFRESH_INTERVAL_OPTIONS || [2, 4, 8, 15])
+    .map((sec) => `<option value="${sec}" ${Number(settings.refreshInterval) === sec ? 'selected' : ''}>Every ${sec} seconds</option>`)
+    .join('');
+
   root.innerHTML = `
+    <div class="card settings-section profile-card">
+      <div class="profile-avatar" aria-hidden="true">D</div>
+      <div class="profile-info">
+        <div class="profile-name">Demo User <span class="profile-badge">Demo account</span></div>
+        <div class="profile-role">Administrator</div>
+        <dl class="profile-details">
+          <div><dt>Username</dt><dd>${username}</dd></div>
+          <div><dt>Institution</dt><dd>Consolatrix College of Toledo City Inc.</dd></div>
+          <div><dt>Checkpoint</dt><dd>${CAMERA_LOCATION}</dd></div>
+        </dl>
+      </div>
+    </div>
+
     <div class="card settings-section">
       <h2>Appearance</h2>
       <div class="settings-row">
@@ -82,6 +89,19 @@ function renderSettingsForm() {
     </div>
 
     <div class="card settings-section">
+      <h2>Monitoring</h2>
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <strong>Refresh Interval</strong>
+          <p class="form-hint">How often Live Monitoring simulates a new detection.</p>
+        </div>
+        <select class="select" id="setting-refresh-interval" aria-label="Refresh interval">
+          ${intervalOptions}
+        </select>
+      </div>
+    </div>
+
+    <div class="card settings-section">
       <h2>Demo Data</h2>
       <p class="form-hint">
         This is a frontend-only demo build — detections live in this browser
@@ -96,6 +116,12 @@ function renderSettingsForm() {
   `;
 
   wireSettingsForm();
+
+  // Only the first draw plays the entrance animation (see components.css).
+  if (!root.dataset.timer) {
+    root.dataset.timer = '1';
+    setTimeout(() => { root.dataset.drawn = '1'; }, 1000);
+  }
 }
 
 function wireSettingsForm() {
@@ -113,6 +139,13 @@ function wireSettingsForm() {
     saveSettings({ notifications: event.target.checked });
     renderSettingsForm();
     showToast(event.target.checked ? 'Detection alerts turned on.' : 'Detection alerts turned off.');
+  });
+
+  document.getElementById('setting-refresh-interval').addEventListener('change', (event) => {
+    const seconds = Number(event.target.value);
+    saveSettings({ refreshInterval: seconds });
+    MonitoringEngine.applyIntervalChange(); // takes effect now if monitoring is running
+    showToast(`Refresh interval set to every ${seconds} seconds.`);
   });
 
   document.getElementById('test-notification-btn').addEventListener('click', () => {
@@ -133,9 +166,10 @@ function wireSettingsForm() {
   document.getElementById('restore-defaults-btn').addEventListener('click', () => {
     confirmAction(
       'Restore default settings?',
-      'This resets theme, display, and notification preferences back to their defaults.',
+      'This resets theme, display, notification, and monitoring preferences back to their defaults. If Live Monitoring is running, it switches back to the default interval.',
       () => {
         resetSettings();
+        MonitoringEngine.applyIntervalChange();
         renderSettingsForm();
         showToast('Settings restored to defaults.');
       },

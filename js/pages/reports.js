@@ -119,19 +119,6 @@ function renderStatusBarChart(stats) {
     col: 'reports-bar-col', value: 'reports-bar-value', track: 'reports-bar-track',
     bar: 'reports-bar', label: 'reports-bar-label',
   });
-  const max = Math.max(...bars.map((b) => b.value), 1);
-
-  chart.setAttribute('aria-label', 'Bar chart of detections by status: '
-    + bars.map((b) => `${b.label} ${b.value}`).join(', '));
-  chart.innerHTML = bars.map((b) => `
-    <div class="reports-bar-col">
-      <span class="reports-bar-value">${b.value}</span>
-      <div class="reports-bar-track">
-        <div class="reports-bar reports-bar--${b.tone}" style="height: ${(b.value / max) * 100}%"></div>
-      </div>
-      <span class="reports-bar-label">${b.label}</span>
-    </div>
-  `).join('');
 }
 
 /** Plain-language narrative summary + a couple of quick insights, computed
@@ -220,6 +207,7 @@ function renderTrendByDate() {
     return;
   }
 
+  playOnce(container);
   container.innerHTML = entries.map(([dateKey, counts]) => {
     const compliantPct = (counts.compliant / counts.total) * 100;
     const violationPct = (counts.violation / counts.total) * 100;
@@ -237,6 +225,76 @@ function renderTrendByDate() {
     `;
   }).join('');
 }
+
+/* ---------- Export ---------- */
+
+/** One CSV field: wrapped in quotes, with inner quotes doubled. */
+function csvField(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+/** Turns the detections for the CURRENT date filter into CSV text.
+ *  Date/Time use the same local time the tables show (formatTimestamp). */
+function buildReportCsv(detections) {
+  const header = ['Detection ID', 'Detected', 'Date', 'Time', 'Status', 'Confidence (%)', 'Manually Reviewed', 'Location'];
+  const rows = [...detections]
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .map((d) => {
+      const when = new Date(d.timestamp);
+      const date = when.toLocaleDateString('en-CA'); // YYYY-MM-DD, local
+      const time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      return [
+        d.id, d.label, date, time, getStatusPillMeta(d.status).label,
+        Math.round(d.confidence * 100), d.reviewed ? 'Yes' : 'No', CAMERA_LOCATION,
+      ];
+    });
+  return [header, ...rows].map((row) => row.map(csvField).join(',')).join('\r\n');
+}
+
+function exportReportCsv() {
+  const detections = getFilteredDetections();
+  if (detections.length === 0) {
+    showToast('Nothing to export for this date range.', 'warning');
+    return;
+  }
+
+  // BOM so Excel reads the file as UTF-8.
+  const blob = new Blob(['\uFEFF', buildReportCsv(detections)], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const scope = dateFilter === 'all' ? 'all-dates' : dateFilter;
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `uniform-compliance-report_${scope}_${new Date().toLocaleDateString('en-CA')}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  showToast(`Exported ${detections.length} detection${detections.length === 1 ? '' : 's'} to CSV.`);
+}
+
+/** Fills the print-only heading, then opens the browser's print dialog
+ *  (choose "Save as PDF" as the destination). */
+function printReport() {
+  document.getElementById('print-range').textContent = dateFilter === 'all'
+    ? 'All dates in the current session'
+    : formatDateLabel(dateFilter);
+  document.getElementById('print-generated').textContent = new Date().toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+  });
+  window.print();
+}
+
+// The dark theme would print as a dark page: switch to light just for printing.
+let themeBeforePrint = null;
+window.addEventListener('beforeprint', () => {
+  themeBeforePrint = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', 'light');
+});
+window.addEventListener('afterprint', () => {
+  if (themeBeforePrint) document.documentElement.setAttribute('data-theme', themeBeforePrint);
+  themeBeforePrint = null;
+});
 
 function renderAll() {
   populateDateFilterOptions();
@@ -265,6 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trend section intentionally not re-rendered here — it always shows
     // the full session regardless of this filter.
   });
+
+  document.getElementById('export-csv-btn').addEventListener('click', exportReportCsv);
+  document.getElementById('export-print-btn').addEventListener('click', printReport);
 
   renderAll();
 

@@ -17,7 +17,11 @@ const DEFAULT_SETTINGS = {
   theme: 'light',        // 'light' | 'dark'
   compactView: false,    // true = tighter spacing in tables/cards/layout
   notifications: true,   // true = demo detection alerts are "on"
+  refreshInterval: 4,    // seconds between simulated detections (see REFRESH_INTERVAL_OPTIONS)
 };
+
+// The choices offered in Settings -> Monitoring -> Refresh Interval.
+const REFRESH_INTERVAL_OPTIONS = [2, 4, 8, 15];
 
 /** Returns the current settings, merged with defaults for any key that
  *  isn't in localStorage yet (so adding a new setting later never breaks
@@ -76,6 +80,7 @@ applySettings();
 
 window.SETTINGS_STORAGE_KEY = SETTINGS_STORAGE_KEY;
 window.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
+window.REFRESH_INTERVAL_OPTIONS = REFRESH_INTERVAL_OPTIONS;
 window.getSettings = getSettings;
 window.saveSettings = saveSettings;
 window.resetSettings = resetSettings;

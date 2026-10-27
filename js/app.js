@@ -288,3 +288,45 @@ function renderAnimatedBars(chart, bars, cls) {
     animateNumber(valueEls[i], b.value);
   });
 }
+
+
+/**
+ * Animates the rows of a table body. Call right after writing its rows.
+ * Rows need a data-id so new ones can be told apart from ones already shown.
+ *  - { enter: true }  first load, page change, filter change: rows fade in
+ *    one after another.
+ *  - default (live refresh): only rows whose data-id was not on screen
+ *    before slide in and flash; everything else stays still.
+ * The first call on a body is always an "enter".
+ *  - { quiet: true } only records what is on screen, with no animation
+ *    (e.g. live refresh while viewing page 2+, where rows just shift around).
+ */
+function animateTableRows(body, { enter = false, quiet = false } = {}) {
+  if (!body || (quiet && !enter) || prefersReducedMotion()) {
+    if (body) body._seenIds = new Set([...body.querySelectorAll('tr[data-id]')].map((r) => r.dataset.id));
+    return;
+  }
+  const rows = [...body.querySelectorAll('tr[data-id]')];
+  const previous = body._seenIds;
+  body._seenIds = new Set(rows.map((r) => r.dataset.id));
+
+  if (enter || !previous) {
+    rows.forEach((row, i) => row.style.setProperty('--row-i', Math.min(i, 15)));
+    body.classList.add('rows-enter');
+    clearTimeout(body._enterTimer);
+    body._enterTimer = setTimeout(() => body.classList.remove('rows-enter'), 450 + Math.min(rows.length, 15) * 28);
+    return;
+  }
+  rows.forEach((row) => {
+    if (!previous.has(row.dataset.id)) row.classList.add('row-new');
+  });
+}
+
+/** Adds `className` to an element the first time only (used for one-time
+ *  "grow in" effects on content that is re-rendered on every live update). */
+function playOnce(el, className = 'bars-enter', ms = 1000) {
+  if (!el || el._playedOnce) return;
+  el._playedOnce = true;
+  el.classList.add(className);
+  setTimeout(() => el.classList.remove(className), ms);
+}

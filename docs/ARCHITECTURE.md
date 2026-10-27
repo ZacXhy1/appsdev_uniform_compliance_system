@@ -77,8 +77,10 @@ would die on each navigation, so the engine instead:
 - fires `ucms:detections` and `ucms:monitoring-state` events on `window`, which
   pages listen to through `MonitoringEngine.onDetections()` to re-render live.
 
-`generateDetection()` is the function to edit to change the odds or timing
-(about 60% compliant, 30% violation, 10% pending). The webcam is page-bound: the
+`generateDetection()` is the function to edit to change the odds. The timing comes
+from the saved **Refresh Interval** setting (2/4/8/15 seconds, default 4); the
+engine reads it fresh on every tick and `applyIntervalChange()` makes a change apply
+immediately (about 60% compliant, 30% violation, 10% pending). The webcam is page-bound: the
 browser releases it on navigation and only Live Monitoring re-attaches it.
 
 ## Browser storage
@@ -108,9 +110,11 @@ keeps the same size across pagination and fits without a page scrollbar.
 
 | I want to... | Edit |
 |---|---|
-| Change detection odds or timing | `generateDetection()` in `js/monitoring-engine.js` |
+| Change detection odds | `generateDetection()` in `js/monitoring-engine.js` |
+| Change how often detections are simulated | Settings → Monitoring → Refresh Interval (`refreshInterval` / `REFRESH_INTERVAL_OPTIONS` in `js/settings.js`; read by `getIntervalMs()` in the engine) |
+| Animate table rows or horizontal bars | `animateTableRows()` / `playOnce()` in `js/app.js`, styles in the Motion section of `css/components.css` |
 | Change the seed data | `MOCK_DETECTIONS` in `js/data/mock-data.js` |
 | Show a real image/video in the snapshot frame | `renderEvidenceFrame()` in `js/app.js` |
-| Change rows per page on Detections | `DETECTIONS_PER_PAGE` in `js/pages/detections.js` |
+| Change rows per page | `DETECTIONS_PER_PAGE` in `js/pages/detections.js`, `VIOLATIONS_PER_PAGE` in `js/pages/violations.js` |
 | Add a setting | `DEFAULT_SETTINGS` in `js/settings.js`, then `js/pages/settings.js` |
 | Change the demo credentials | `js/auth.js` |

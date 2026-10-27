@@ -44,9 +44,9 @@ Login · Dashboard · Live Monitoring · Detections · Violations · Reports · 
 - **Live Monitoring** — optional webcam view with simulated detections that keep running while you move between pages.
 - **Detections** — searchable, filterable, paginated list with a details modal. 
   Unclear results can be reviewed manually, and wrong results can be corrected.
-- **Violations** — non-compliant detections with stats, filters, and details.
-- **Reports** — compliance statistics, charts, and a date filter.
-- **Settings** — light/dark theme, compact view, notifications, and demo reset.
+- **Violations** — non-compliant detections with stats, filters, details, and pagination (15 per page).
+- **Reports** — compliance statistics, charts, a date filter, and export (CSV download, or Print / Save as PDF).
+- **Settings** — demo user profile, light/dark theme, compact view, notifications, monitoring refresh interval (every 2/4/8/15 seconds), and demo reset.
 
 Snapshots are empty-avatar placeholders for now. See
 [`docs/PHASES.md`](docs/PHASES.md) for the full details of each screen.

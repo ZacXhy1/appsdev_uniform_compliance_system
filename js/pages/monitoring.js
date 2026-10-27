@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // New detections from the engine (every ~4s while monitoring is on). In full
+  // New detections from the engine (every few seconds while monitoring is on — see Settings → Refresh Interval). In full
   // screen each one also pops up over the feed. After a catch-up burst (a
   // throttled tab waking up) only the newest few are worth showing.
   MonitoringEngine.onDetections(({ detections }) => {

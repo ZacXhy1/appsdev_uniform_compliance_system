@@ -34,7 +34,7 @@ function getFilteredSortedDetections() {
   });
 }
 
-function renderTable() {
+function renderTable({ enter = false } = {}) {
   const allDetections = getSessionDetections();
   const results = getFilteredSortedDetections();
   const body = document.getElementById('detections-table-body');
@@ -64,13 +64,13 @@ function renderTable() {
 
   renderPagination(document.getElementById('detections-pagination'), currentPage, totalPages, (page) => {
     currentPage = page;
-    renderTable();
+    renderTable({ enter: true });
   });
 
   body.innerHTML = pageRows.map((d) => {
     const meta = getStatusPillMeta(d.status);
     return `
-      <tr>
+      <tr data-id="${d.id}">
         <td>${d.id}</td>
         <td>${d.label}</td>
         <td class="col-center">${formatTimestamp(d.timestamp)}</td>
@@ -84,6 +84,8 @@ function renderTable() {
       </tr>
     `;
   }).join('');
+
+  animateTableRows(body, { enter, quiet: currentPage !== 1 });
 
   // Pad short pages (last page / filtered results) with blank rows so the
   // table always keeps the same height while paging.
@@ -159,19 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('detections-search').addEventListener('input', (event) => {
     searchTerm = event.target.value.trim().toLowerCase();
     currentPage = 1;
-    renderTable();
+    renderTable({ enter: true });
   });
 
   document.getElementById('detections-status-filter').addEventListener('change', (event) => {
     statusFilter = event.target.value;
     currentPage = 1;
-    renderTable();
+    renderTable({ enter: true });
   });
 
   document.getElementById('detections-sort').addEventListener('change', (event) => {
     sortOrder = event.target.value;
     currentPage = 1;
-    renderTable();
+    renderTable({ enter: true });
   });
 
   // Banner button jumps straight to the pending detections.
@@ -179,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusFilter = 'pending';
     document.getElementById('detections-status-filter').value = 'pending';
     currentPage = 1;
-    renderTable();
+    renderTable({ enter: true });
   });
 
   renderReviewBanner();

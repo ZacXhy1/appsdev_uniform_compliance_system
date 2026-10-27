@@ -26,12 +26,22 @@
    ========================================================================== */
 
 (function () {
-  const INTERVAL_MS = 4000;
+  const DEFAULT_INTERVAL_MS = 4000;
   const MAX_CATCH_UP = 10;
   const ACTIVE_KEY = 'ucms_monitoring_active'; // same key the Monitoring page always used
   const NEXT_DUE_KEY = 'ucms_monitoring_next_due';
 
   let timer = null;
+
+  /** Time between detections, from Settings -> Monitoring -> Refresh Interval.
+   *  Read fresh every time so a change applies without reloading. Falls back
+   *  to 4 s if the saved value is missing or not one of the allowed options. */
+  function getIntervalMs() {
+    if (typeof getSettings !== 'function') return DEFAULT_INTERVAL_MS;
+    const seconds = Number(getSettings().refreshInterval);
+    const allowed = window.REFRESH_INTERVAL_OPTIONS || [];
+    return allowed.includes(seconds) ? seconds * 1000 : DEFAULT_INTERVAL_MS;
+  }
 
   /* ---------- state ---------- */
 
@@ -105,12 +115,12 @@
       const detection = generateDetection(list.length + added.length + 1, stamp);
       usedIds.add(detection.id);
       added.push(detection);
-      due += INTERVAL_MS;
+      due += getIntervalMs();
     }
 
     // Still behind after hitting the cap (tab was asleep a long time):
     // don't invent more history, just resume on schedule from now.
-    if (due <= now) due = now + INTERVAL_MS;
+    if (due <= now) due = now + getIntervalMs();
 
     sessionStorage.setItem(NEXT_DUE_KEY, String(due));
 
@@ -139,6 +149,16 @@
     processDue();
   }
 
+  /** Call after the refresh interval setting changes. Pulls the next detection
+   *  forward if the new interval is shorter than the time left on the old
+   *  one (15 s -> 2 s takes effect within 2 s, not after the old wait). */
+  function applyIntervalChange() {
+    if (!isActive()) return;
+    const soonest = Date.now() + getIntervalMs();
+    if (getNextDue() > soonest) sessionStorage.setItem(NEXT_DUE_KEY, String(soonest));
+    schedule();
+  }
+
   function stop() {
     sessionStorage.setItem(ACTIVE_KEY, 'false');
     sessionStorage.removeItem(NEXT_DUE_KEY);
@@ -158,7 +178,8 @@
   }
 
   window.MonitoringEngine = {
-    INTERVAL_MS,
+    getIntervalMs,
+    applyIntervalChange,
     isActive,
     start,
     stop,
